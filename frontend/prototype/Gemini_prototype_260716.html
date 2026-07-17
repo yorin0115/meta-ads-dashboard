@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta 廣告分析儀表板</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* Tailwind slate-100 */
+        }
+        
+        /* 隱藏捲軸但保持可捲動 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 自訂核取方塊樣式 */
+        .custom-checkbox {
+            accent-color: #1877F2; /* Meta Blue */
+        }
+
+        /* 玻璃質地卡片 */
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            border-radius: 0.75rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden">
+
+    <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex transition-all duration-300">
+        <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-100">
+            <i class="fa-brands fa-meta text-2xl text-blue-600"></i>
+            <span class="ml-3 font-bold text-lg hidden lg:block tracking-wide">Ads<span class="text-blue-600">Dash</span></span>
+        </div>
+        <nav class="flex-1 py-6 flex flex-col gap-2 px-3">
+            <a href="#" class="flex items-center px-3 py-2.5 bg-blue-50 text-blue-600 rounded-lg group">
+                <i class="fa-solid fa-chart-pie w-6 text-center"></i>
+                <span class="ml-3 font-medium hidden lg:block">成效總覽</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-lg group transition-colors">
+                <i class="fa-solid fa-bullhorn w-6 text-center"></i>
+                <span class="ml-3 font-medium hidden lg:block">廣告活動</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-lg group transition-colors">
+                <i class="fa-solid fa-users-viewfinder w-6 text-center"></i>
+                <span class="ml-3 font-medium hidden lg:block">受眾分析</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-lg group transition-colors">
+                <i class="fa-solid fa-money-bill-trend-up w-6 text-center"></i>
+                <span class="ml-3 font-medium hidden lg:block">預算控制</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-100">
+            <div class="flex items-center">
+                <img src="https://placehold.co/40x40/1877F2/FFFFFF?text=OP" alt="User" class="w-8 h-8 rounded-full">
+                <div class="ml-3 hidden lg:block">
+                    <p class="text-sm font-medium">優化師</p>
+                    <p class="text-xs text-slate-500">Workspace</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <!-- Header -->
+        <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-bold text-slate-800">成效分析儀表板</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-slate-100 rounded-lg p-1">
+                    <span class="text-xs text-slate-500 font-medium px-2">當月預算設定</span>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                        <input type="number" id="monthlyBudgetInput" value="150000" class="w-28 pl-6 pr-2 py-1 text-sm bg-white border-none rounded shadow-sm focus:ring-2 focus:ring-blue-500 outline-none" onchange="app.updatePacing()">
+                    </div>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg text-sm transition shadow-sm">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 hide-scrollbar pb-20">
+
+            <section class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <!-- KPI Checkboxes -->
+                    <div class="flex flex-wrap items-center gap-4 p-3 glass-card">
+                        <span class="text-sm font-semibold text-slate-600 mr-2">顯示指標：</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="Cost" class="custom-checkbox w-4 h-4 rounded border-slate-300" checked onchange="app.toggleKpi(this)">
+                            <span class="ml-2 text-sm font-medium">Cost</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="CPA" class="custom-checkbox w-4 h-4 rounded border-slate-300" checked onchange="app.toggleKpi(this)">
+                            <span class="ml-2 text-sm font-medium">CPA</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="ROAS" class="custom-checkbox w-4 h-4 rounded border-slate-300" checked onchange="app.toggleKpi(this)">
+                            <span class="ml-2 text-sm font-medium">ROAS</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="CVR" class="custom-checkbox w-4 h-4 rounded border-slate-300" checked onchange="app.toggleKpi(this)">
+                            <span class="ml-2 text-sm font-medium">CVR</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="CTR" class="custom-checkbox w-4 h-4 rounded border-slate-300" checked onchange="app.toggleKpi(this)">
+                            <span class="ml-2 text-sm font-medium">CTR</span>
+                        </label>
+                    </div>
+
+                    <!-- Date Range Selector -->
+                    <select id="globalDateRange" class="glass-card px-4 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" onchange="app.changeDateRange()">
+                        <option value="yesterday">前 1 天</option>
+                        <option value="last7">過去 7 天</option>
+                        <option value="last30">過去 30 天</option>
+                        <option value="thisMonth" selected>當月</option>
+                    </select>
+                </div>
+
+                <!-- KPI Cards Container -->
+                <div id="kpiCardsContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <!-- Cards will be injected by JS -->
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Spend Pacing -->
+                <div class="glass-card p-5 lg:col-span-1 flex flex-col h-full">
+                    <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-wallet text-slate-400 mr-2"></i> 花費進度預測
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-500">當月已花費</span>
+                            <span class="font-bold" id="displaySpent">$0</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 relative">
+                            <!-- Progress Bar Base -->
+                            <div id="pacingBar" class="h-2.5 rounded-full transition-all duration-500 bg-blue-500" style="width: 0%"></div>
+                            <!-- Expected Marker -->
+                            <div id="expectedMarker" class="absolute top-0 h-3 w-1 bg-slate-800 -mt-[1px] shadow" style="left: 0%" title="預期進度"></div>
+                        </div>
+                        <div class="flex justify-between text-xs mt-1 text-slate-400">
+                            <span>$0</span>
+                            <span id="displayBudget">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-xs text-slate-500 mb-1">進度狀態</p>
+                            <p id="pacingStatusText" class="font-bold text-sm flex items-center">
+                                <span class="w-2 h-2 rounded-full mr-2 bg-gray-300" id="pacingDot"></span>
+                                計算中...
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-xs text-slate-500 mb-1">差距 (花費 vs 預期)</p>
+                            <p id="pacingDiff" class="font-bold text-sm text-slate-700">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <p class="text-xs text-blue-600 font-medium mb-1">剩餘天數理想日花費 (<span id="remainingDays">0</span> 天)</p>
+                        <p class="text-2xl font-bold text-blue-700" id="idealDailySpend">$0</p>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 text-center">指示燈：±5%綠燈 / 超過±5%黃燈 / 超過±10%紅燈</p>
+                </div>
+
+                <!-- Trend Chart -->
+                <div class="glass-card p-5 lg:col-span-2 relative min-h-[300px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-chart-line text-slate-400 mr-2"></i> 成效趨勢圖
+                        </h2>
+                        <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">點擊圖例可隱藏指標</span>
+                    </div>
+                    <div class="w-full h-[250px]">
+                        <canvas id="mainTrendChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Budget Suggestions -->
+                <div class="glass-card p-5 flex flex-col h-80">
+                    <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i> 預算配置建議
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-3">基於目前成效與剩餘預算提供的群組層級建議</p>
+                    <div class="overflow-y-auto flex-1 hide-scrollbar">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-500 bg-slate-50 sticky top-0">
+                                <tr>
+                                    <th class="px-3 py-2 rounded-tl-lg">廣告群組</th>
+                                    <th class="px-3 py-2 text-right">建議動作</th>
+                                    <th class="px-3 py-2 text-right rounded-tr-lg">原因</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="budgetSuggestionsList">
+                                <!-- JS injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Performance Alerts -->
+                <div class="glass-card p-5 flex flex-col h-80">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i> 成效警示
+                        </h2>
+                        <div class="flex gap-2 text-[10px] font-medium">
+                            <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">昨日超標</span>
+                            <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded">近7日超標</span>
+                        </div>
+                    </div>
+                    <div class="overflow-y-auto flex-1 hide-scrollbar space-y-2" id="alertsList">
+                        <!-- JS injected -->
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-card p-5">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center">
+                        <i class="fa-solid fa-table-list text-slate-400 mr-2"></i> 成效指標明細
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-slate-400 text-sm"></i>
+                        <select class="text-sm border border-slate-200 rounded px-2 py-1 outline-none">
+                            <option>所有活動</option>
+                            <option>投放中</option>
+                        </select>
+                        <select class="text-sm border border-slate-200 rounded px-2 py-1 outline-none" id="tableDateFilter" onchange="app.renderTable()">
+                            <option value="all">依全域時間</option>
+                            <option value="yesterday">前 1 天</option>
+                            <option value="last7">過去 7 天</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs text-slate-500 bg-slate-50 uppercase border-y border-slate-200">
+                            <tr id="tableHeaders">
+                                <!-- JS injected sortable headers -->
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700" id="performanceTableBody">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Top Ads -->
+                <div class="glass-card p-4 flex flex-col h-72">
+                    <h2 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                        <i class="fa-solid fa-star text-yellow-400 mr-2"></i> 強勢素材清單 (近30天)
+                    </h2>
+                    <div class="overflow-y-auto flex-1 hide-scrollbar pr-1" id="topAdsList">
+                        <!-- JS injected -->
+                    </div>
+                </div>
+
+                <!-- Potential Audiences -->
+                <div class="glass-card p-4 flex flex-col h-72">
+                    <h2 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                        <i class="fa-solid fa-users text-blue-500 mr-2"></i> 潛力受眾清單
+                    </h2>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="newAudienceInput" placeholder="輸入受眾名稱或特徵..." class="flex-1 text-sm border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500">
+                        <button onclick="app.addAudience()" class="bg-slate-800 text-white px-3 py-1 rounded text-sm hover:bg-slate-700"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <ul class="overflow-y-auto flex-1 hide-scrollbar space-y-2" id="audiencesList">
+                        <!-- JS injected -->
+                    </ul>
+                </div>
+
+                <!-- Today's Logs -->
+                <div class="glass-card p-4 flex flex-col h-72">
+                    <h2 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                        <i class="fa-solid fa-clipboard-check text-green-500 mr-2"></i> 今日調整紀錄
+                    </h2>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="newLogInput" placeholder="例如：提高 Campaign A 預算" class="flex-1 text-sm border border-slate-200 rounded px-2 py-1 outline-none focus:border-blue-500">
+                        <button onclick="app.addLog()" class="bg-slate-800 text-white px-3 py-1 rounded text-sm hover:bg-slate-700"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <ul class="overflow-y-auto flex-1 hide-scrollbar space-y-2 text-sm" id="logsList">
+                        <!-- JS injected -->
+                    </ul>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        const app = {
+            // --- State ---
+            state: {
+                selectedKpis: ['Cost', 'CPA', 'ROAS', 'CVR', 'CTR'],
+                dateRange: 'thisMonth',
+                monthDays: 30, // 假設每月 30 天
+                currentDay: 16, // 假設今天是本月第 16 天
+                chartInstance: null,
+                tableSort: { col: 'Cost', dir: 'desc' },
+                audiences: ['Lookalike (TW, 1%) - 購買', 'Interest: 數位行銷 & 創業', 'Retargeting: 網頁訪客 30D'],
+                logs: ['[09:00] 關閉 CPA > $500 的素材', '[10:30] 提高 [促銷] 群組預算 20%']
+            },
+
+            // --- Mock Data ---
+            mockData: {
+                // KPIs based on time range
+                kpi: {
+                    yesterday: { Cost: {v: 2500, p: 2800}, CPA: {v: 312, p: 350}, ROAS: {v: 2.8, p: 2.5}, CVR: {v: 2.1, p: 1.9}, CTR: {v: 1.5, p: 1.6} },
+                    last7: { Cost: {v: 18500, p: 17000}, CPA: {v: 340, p: 320}, ROAS: {v: 2.5, p: 2.7}, CVR: {v: 1.8, p: 2.0}, CTR: {v: 1.6, p: 1.5} },
+                    last30: { Cost: {v: 85000, p: 90000}, CPA: {v: 320, p: 380}, ROAS: {v: 3.1, p: 2.6}, CVR: {v: 2.2, p: 1.8}, CTR: {v: 1.8, p: 1.6} },
+                    thisMonth: { Cost: {v: 72000, p: 68000}, CPA: {v: 335, p: 310}, ROAS: {v: 2.9, p: 3.2}, CVR: {v: 2.0, p: 2.3}, CTR: {v: 1.7, p: 1.8} }
+                },
+                // Table Data
+                table: [
+                    { campaign: 'C_促銷_08', adset: 'A_Lookalike', ad: 'Img_折扣碼', Cost: 12500, Imp: 45000, Clicks: 900, Reach: 38000, CV: 35, CTR: 2.0, CPC: 13.8, CPM: 277, ROAS: 3.5, CPA: 357, CVR: 3.8 },
+                    { campaign: 'C_促銷_08', adset: 'A_Retargeting', ad: 'Vid_開箱', Cost: 8200, Imp: 22000, Clicks: 550, Reach: 18000, CV: 42, CTR: 2.5, CPC: 14.9, CPM: 372, ROAS: 4.2, CPA: 195, CVR: 7.6 },
+                    { campaign: 'C_常態_Brand', adset: 'A_Broad', ad: 'Carousel_產品', Cost: 25000, Imp: 120000, Clicks: 1500, Reach: 105000, CV: 50, CTR: 1.25, CPC: 16.6, CPM: 208, ROAS: 1.8, CPA: 500, CVR: 3.3 },
+                    { campaign: 'C_常態_Brand', adset: 'A_Interest', ad: 'Img_生活感', Cost: 18000, Imp: 85000, Clicks: 1100, Reach: 72000, CV: 40, CTR: 1.29, CPC: 16.3, CPM: 211, ROAS: 2.1, CPA: 450, CVR: 3.6 },
+                    { campaign: 'C_測試_新素材', adset: 'A_Broad', ad: 'Vid_短影音', Cost: 5000, Imp: 30000, Clicks: 800, Reach: 28000, CV: 15, CTR: 2.66, CPC: 6.25, CPM: 166, ROAS: 2.8, CPA: 333, CVR: 1.8 }
+                ],
+                chartLabels: ['1號', '3號', '5號', '7號', '9號', '11號', '13號', '15號']
+            },
+
+            // --- Formatting Helpers ---
+            formatCurrency: (val) => new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', maximumFractionDigits: 0 }).format(val),
+            formatNumber: (val) => new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 2 }).format(val),
+            formatPercent: (val) => val.toFixed(2) + '%',
+
+            // --- Initialization ---
+            init: function() {
+                this.renderKPIs();
+                this.updatePacing();
+                this.initChart();
+                this.renderTableHeaders();
+                this.renderTable();
+                this.renderSuggestions();
+                this.renderAlerts();
+                this.renderTopAds();
+                this.renderLists();
+            },
+
+            // --- Actions ---
+            toggleKpi: function(checkbox) {
+                const val = checkbox.value;
+                if (checkbox.checked) {
+                    if (!this.state.selectedKpis.includes(val)) this.state.selectedKpis.push(val);
+                } else {
+                    this.state.selectedKpis = this.state.selectedKpis.filter(k => k !== val);
+                }
+                this.renderKPIs();
+                this.updateChartData();
+            },
+
+            changeDateRange: function() {
+                this.state.dateRange = document.getElementById('globalDateRange').value;
+                this.renderKPIs();
+                // In a real app, you would fetch new chart data and table data here
+            },
+
+            // --- Rendering Functions ---
+            renderKPIs: function() {
+                const container = document.getElementById('kpiCardsContainer');
+                container.innerHTML = '';
+                const data = this.mockData.kpi[this.state.dateRange];
+
+                const kpiConfigs = {
+                    Cost: { icon: 'fa-sack-dollar', format: this.formatCurrency, reverseColors: true }, // Cost up isn't always bad, but let's assume lower is better for colors
+                    CPA: { icon: 'fa-filter-circle-dollar', format: this.formatCurrency, reverseColors: true }, // Lower is better
+                    ROAS: { icon: 'fa-arrow-trend-up', format: this.formatNumber, reverseColors: false }, // Higher is better
+                    CVR: { icon: 'fa-cart-arrow-down', format: this.formatPercent, reverseColors: false },
+                    CTR: { icon: 'fa-hand-pointer', format: this.formatPercent, reverseColors: false }
+                };
+
+                this.state.selectedKpis.forEach(kpi => {
+                    const d = data[kpi];
+                    if (!d) return;
+                    const config = kpiConfigs[kpi];
+                    const change = ((d.v - d.p) / d.p) * 100;
+                    
+                    let colorClass = 'text-slate-500';
+                    let bgClass = 'bg-slate-100';
+                    let arrow = '';
+
+                    if (change > 0) {
+                        arrow = '↑';
+                        if (config.reverseColors) { colorClass = 'text-red-600'; bgClass = 'bg-red-50'; }
+                        else { colorClass = 'text-green-600'; bgClass = 'bg-green-50'; }
+                    } else if (change < 0) {
+                        arrow = '↓';
+                        if (config.reverseColors) { colorClass = 'text-green-600'; bgClass = 'bg-green-50'; }
+                        else { colorClass = 'text-red-600'; bgClass = 'bg-red-50'; }
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'glass-card p-4 relative overflow-hidden group';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">${kpi}</p>
+                                <h3 class="text-xl font-bold text-slate-800 mt-1">${config.format(d.v)}</h3>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid ${config.icon} text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center text-xs">
+                            <span class="${bgClass} ${colorClass} px-1.5 py-0.5 rounded font-medium flex items-center">
+                                ${arrow} ${Math.abs(change).toFixed(1)}%
+                            </span>
+                            <span class="text-slate-400 ml-2">vs 前期</span>
+                        </div>
+                        <div class="absolute -bottom-2 -right-2 text-slate-50 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i class="fa-solid ${config.icon} text-6xl"></i>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            },
+
+            updatePacing: function() {
+                const budgetInput = document.getElementById('monthlyBudgetInput').value;
+                const totalBudget = parseFloat(budgetInput) || 0;
+                
+                // Get current spend from thisMonth mock data
+                const currentSpend = this.mockData.kpi.thisMonth.Cost.v; 
+                
+                const expectedProgress = (this.state.currentDay - 1) / this.state.monthDays;
+                const expectedSpend = totalBudget * expectedProgress;
+                const actualProgress = totalBudget > 0 ? currentSpend / totalBudget : 0;
+                
+                let diffPercentage = 0;
+                if (expectedSpend > 0) {
+                    diffPercentage = ((currentSpend - expectedSpend) / expectedSpend) * 100;
+                }
+
+                // Update UI Texts
+                document.getElementById('displaySpent').innerText = this.formatCurrency(currentSpend);
+                document.getElementById('displayBudget').innerText = this.formatCurrency(totalBudget);
+                
+                const remainingDays = this.state.monthDays - this.state.currentDay + 1;
+                const remainingBudget = totalBudget - currentSpend;
+                const idealDaily = remainingDays > 0 ? (remainingBudget > 0 ? remainingBudget / remainingDays : 0) : 0;
+                
+                document.getElementById('remainingDays').innerText = remainingDays;
+                document.getElementById('idealDailySpend').innerText = this.formatCurrency(idealDaily);
+                document.getElementById('pacingDiff').innerText = `${diffPercentage > 0 ? '+' : ''}${diffPercentage.toFixed(1)}%`;
+
+                // Update Progress Bars
+                const bar = document.getElementById('pacingBar');
+                bar.style.width = `${Math.min(actualProgress * 100, 100)}%`;
+                document.getElementById('expectedMarker').style.left = `${expectedProgress * 100}%`;
+
+                // Status Logic
+                const statusTextEl = document.getElementById('pacingStatusText');
+                const dot = document.getElementById('pacingDot');
+                
+                if (diffPercentage > 10) {
+                    statusTextEl.innerText = '大幅超支 (紅燈)'; statusTextEl.className = 'font-bold text-sm flex items-center text-red-600';
+                    dot.className = 'w-2 h-2 rounded-full mr-2 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]';
+                    bar.className = 'h-2.5 rounded-full transition-all duration-500 bg-red-500';
+                } else if (diffPercentage < -10) {
+                    statusTextEl.innerText = '大幅落後 (紅燈)'; statusTextEl.className = 'font-bold text-sm flex items-center text-red-600';
+                    dot.className = 'w-2 h-2 rounded-full mr-2 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]';
+                    bar.className = 'h-2.5 rounded-full transition-all duration-500 bg-red-500'; // Underpacing heavily is also red
+                } else if (Math.abs(diffPercentage) > 5) {
+                    statusTextEl.innerText = diffPercentage > 0 ? '微幅超支 (黃燈)' : '微幅落後 (黃燈)'; 
+                    statusTextEl.className = 'font-bold text-sm flex items-center text-yellow-600';
+                    dot.className = 'w-2 h-2 rounded-full mr-2 bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]';
+                    bar.className = 'h-2.5 rounded-full transition-all duration-500 bg-yellow-400';
+                } else {
+                    statusTextEl.innerText = '進度良好 (綠燈)'; statusTextEl.className = 'font-bold text-sm flex items-center text-green-600';
+                    dot.className = 'w-2 h-2 rounded-full mr-2 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]';
+                    bar.className = 'h-2.5 rounded-full transition-all duration-500 bg-green-500';
+                }
+            },
+
+            initChart: function() {
+                const ctx = document.getElementById('mainTrendChart').getContext('2d');
+                
+                // Mock chart datasets
+                const allDatasets = {
+                    Cost: { label: 'Cost', data: [8000, 7500, 9000, 8500, 10000, 9500, 11000, 8500], borderColor: '#64748b', yAxisID: 'y', tension: 0.3 },
+                    CPA: { label: 'CPA', data: [350, 340, 360, 330, 380, 345, 390, 335], borderColor: '#ef4444', yAxisID: 'y1', tension: 0.3 },
+                    ROAS: { label: 'ROAS', data: [2.5, 2.7, 2.4, 2.8, 2.2, 2.6, 2.1, 2.9], borderColor: '#10b981', yAxisID: 'y2', tension: 0.3 },
+                    CVR: { label: 'CVR', data: [1.8, 2.0, 1.7, 2.1, 1.6, 1.9, 1.5, 2.0], borderColor: '#8b5cf6', yAxisID: 'y2', tension: 0.3 },
+                    CTR: { label: 'CTR', data: [1.5, 1.6, 1.4, 1.7, 1.3, 1.6, 1.2, 1.7], borderColor: '#f59e0b', yAxisID: 'y2', tension: 0.3 }
+                };
+
+                const initialDatasets = this.state.selectedKpis.map(kpi => allDatasets[kpi]);
+
+                this.state.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: this.mockData.chartLabels,
+                        datasets: initialDatasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6 } } },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: '金額' } },
+                            y1: { type: 'linear', display: false, position: 'left' }, // Hide extra axes to avoid clutter, chartjs handles auto scaling per dataset roughly if configured, or we just map them visually
+                            y2: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '比率/次數' } }
+                        }
+                    }
+                });
+            },
+
+            updateChartData: function() {
+                if(!this.state.chartInstance) return;
+                
+                const allDatasets = {
+                    Cost: { label: 'Cost', data: [8000, 7500, 9000, 8500, 10000, 9500, 11000, 8500], borderColor: '#64748b', yAxisID: 'y', tension: 0.3 },
+                    CPA: { label: 'CPA', data: [350, 340, 360, 330, 380, 345, 390, 335], borderColor: '#ef4444', yAxisID: 'y', tension: 0.3 }, // Move to Y to simplify
+                    ROAS: { label: 'ROAS', data: [2.5, 2.7, 2.4, 2.8, 2.2, 2.6, 2.1, 2.9], borderColor: '#10b981', yAxisID: 'y2', tension: 0.3 },
+                    CVR: { label: 'CVR', data: [1.8, 2.0, 1.7, 2.1, 1.6, 1.9, 1.5, 2.0], borderColor: '#8b5cf6', yAxisID: 'y2', tension: 0.3 },
+                    CTR: { label: 'CTR', data: [1.5, 1.6, 1.4, 1.7, 1.3, 1.6, 1.2, 1.7], borderColor: '#f59e0b', yAxisID: 'y2', tension: 0.3 }
+                };
+
+                this.state.chartInstance.data.datasets = this.state.selectedKpis.map(kpi => allDatasets[kpi]);
+                this.state.chartInstance.update();
+            },
+
+            renderSuggestions: function() {
+                const tbody = document.getElementById('budgetSuggestionsList');
+                // Mock suggestions based on table data
+                const suggestions = [
+                    { adset: 'C_促銷_08 > A_Retargeting', action: '加碼 +20%', class: 'text-green-600 bg-green-50', reason: 'ROAS (4.2) 遠高於均值，且預算消耗正常' },
+                    { adset: 'C_常態_Brand > A_Broad', action: '降預算 -15%', class: 'text-red-600 bg-red-50', reason: 'CPA ($500) 超標，轉換率偏低' },
+                    { adset: 'C_測試_新素材 > A_Broad', action: '維持觀察', class: 'text-slate-600 bg-slate-50', reason: 'CTR 極佳但需累積更多轉換數據' }
+                ];
+
+                tbody.innerHTML = suggestions.map(s => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3 py-3 font-medium text-slate-700 max-w-[150px] truncate" title="${s.adset}">${s.adset}</td>
+                        <td class="px-3 py-3 text-right"><span class="${s.class} px-2 py-1 rounded text-xs font-bold">${s.action}</span></td>
+                        <td class="px-3 py-3 text-right text-xs text-slate-500">${s.reason}</td>
+                    </tr>
+                `).join('');
+            },
+
+            renderAlerts: function() {
+                const list = document.getElementById('alertsList');
+                const alerts = [
+                    { type: 'red', period: '近7日', target: 'Ad: Img_生活感 (Brand)', metric: 'CPA $450', reason: '超出 KPI ($350) 28%' },
+                    { type: 'yellow', period: '昨日', target: 'Adset: A_Broad (Brand)', metric: 'Cost $8,500', reason: '單日花費暴衝，請確認頻率' },
+                    { type: 'red', period: '近7日', target: 'Ad: Carousel_產品', metric: 'ROAS 1.8', reason: '低於停損線 (2.0)' }
+                ];
+
+                list.innerHTML = alerts.map(a => `
+                    <div class="flex items-start p-3 border border-${a.type}-100 bg-${a.type}-50/50 rounded-lg">
+                        <i class="fa-solid fa-circle-exclamation text-${a.type}-500 mt-0.5 mr-3"></i>
+                        <div>
+                            <p class="text-sm font-bold text-slate-800"><span class="bg-${a.type}-200 text-${a.type}-800 text-[10px] px-1.5 py-0.5 rounded mr-1">${a.period}</span>${a.target}</p>
+                            <p class="text-xs text-slate-600 mt-1"><span class="font-semibold">${a.metric}</span> - ${a.reason}</p>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            // Table Logic
+            headers: [
+                { key: 'campaign', label: 'Campaign' }, { key: 'adset', label: 'Ad Set' }, { key: 'ad', label: 'Ad' },
+                { key: 'Cost', label: 'Cost', isNum: true }, { key: 'Imp', label: 'Imp.', isNum: true }, 
+                { key: 'Clicks', label: 'Clicks', isNum: true }, { key: 'Reach', label: 'Reach', isNum: true },
+                { key: 'CV', label: 'CV', isNum: true }, { key: 'CTR', label: 'CTR', isNum: true, suffix: '%' },
+                { key: 'CPC', label: 'CPC', isNum: true, prefix: '$' }, { key: 'CPM', label: 'CPM', isNum: true, prefix: '$' },
+                { key: 'ROAS', label: 'ROAS', isNum: true }, { key: 'CPA', label: 'CPA', isNum: true, prefix: '$' },
+                { key: 'CVR', label: 'CVR', isNum: true, suffix: '%' }
+            ],
+
+            handleSort: function(key) {
+                if (this.state.tableSort.col === key) {
+                    this.state.tableSort.dir = this.state.tableSort.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.state.tableSort.col = key;
+                    this.state.tableSort.dir = 'desc';
+                }
+                this.renderTableHeaders();
+                this.renderTable();
+            },
+
+            renderTableHeaders: function() {
+                const tr = document.getElementById('tableHeaders');
+                tr.innerHTML = this.headers.map(h => {
+                    let icon = 'fa-sort text-slate-300';
+                    if (this.state.tableSort.col === h.key) {
+                        icon = this.state.tableSort.dir === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500';
+                    }
+                    const alignClass = h.isNum ? 'text-right' : 'text-left';
+                    return `<th class="px-4 py-3 cursor-pointer hover:bg-slate-100 transition-colors ${alignClass}" onclick="app.handleSort('${h.key}')">
+                                ${h.label} <i class="fa-solid ${icon} ml-1 text-[10px]"></i>
+                            </th>`;
+                }).join('');
+            },
+
+            renderTable: function() {
+                const tbody = document.getElementById('performanceTableBody');
+                let data = [...this.mockData.table];
+                
+                // Sorting
+                const { col, dir } = this.state.tableSort;
+                data.sort((a, b) => {
+                    let valA = a[col]; let valB = b[col];
+                    if (valA < valB) return dir === 'asc' ? -1 : 1;
+                    if (valA > valB) return dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                tbody.innerHTML = data.map(row => `
+                    <tr class="hover:bg-blue-50/50 transition-colors">
+                        <td class="px-4 py-3 font-medium text-slate-800">${row.campaign}</td>
+                        <td class="px-4 py-3 text-slate-600">${row.adset}</td>
+                        <td class="px-4 py-3 text-slate-600">${row.ad}</td>
+                        <td class="px-4 py-3 text-right">${this.formatCurrency(row.Cost)}</td>
+                        <td class="px-4 py-3 text-right">${row.Imp.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right">${row.Clicks.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right">${row.Reach.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right font-medium">${row.CV}</td>
+                        <td class="px-4 py-3 text-right">${row.CTR.toFixed(2)}%</td>
+                        <td class="px-4 py-3 text-right">$${row.CPC.toFixed(1)}</td>
+                        <td class="px-4 py-3 text-right">$${row.CPM}</td>
+                        <td class="px-4 py-3 text-right font-bold ${row.ROAS > 3 ? 'text-green-600' : (row.ROAS < 2 ? 'text-red-500' : '')}">${row.ROAS.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-right font-bold ${row.CPA < 300 ? 'text-green-600' : (row.CPA > 400 ? 'text-red-500' : '')}">$${row.CPA}</td>
+                        <td class="px-4 py-3 text-right">${row.CVR.toFixed(2)}%</td>
+                    </tr>
+                `).join('');
+            },
+
+            renderTopAds: function() {
+                const list = document.getElementById('topAdsList');
+                // Mock strong ads achieving KPI in 30 days
+                const ads = [
+                    { ad: 'Vid_開箱', campaign: 'C_促銷_08', adset: 'A_Retargeting', cpa: 195, status: '投遞中' },
+                    { ad: 'Img_折扣碼', campaign: 'C_促銷_08', adset: 'A_Lookalike', cpa: 357, status: '投遞中' },
+                    { ad: 'Vid_短影音', campaign: 'C_測試_新素材', adset: 'A_Broad', cpa: 333, status: '已暫停' }
+                ];
+
+                list.innerHTML = ads.map(a => {
+                    const statusColor = a.status === '投遞中' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600';
+                    return `
+                    <div class="p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-semibold text-sm text-slate-800">${a.ad}</span>
+                            <span class="text-xs px-2 py-0.5 rounded ${statusColor}">${a.status}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 truncate" title="${a.campaign} > ${a.adset}">${a.campaign} <i class="fa-solid fa-angle-right text-[8px] mx-1"></i> ${a.adset}</p>
+                        <p class="text-xs font-bold text-blue-600 mt-1">Avg. CPA: $${a.cpa}</p>
+                    </div>
+                `}).join('');
+            },
+
+            renderLists: function() {
+                // Audiences
+                const aList = document.getElementById('audiencesList');
+                aList.innerHTML = this.state.audiences.map((a, i) => `
+                    <li class="flex justify-between items-center p-2 bg-slate-50 rounded border border-slate-100 text-sm">
+                        <span class="text-slate-700"><i class="fa-solid fa-user-tag text-slate-400 mr-2 text-xs"></i>${a}</span>
+                        <button onclick="app.removeAudience(${i})" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+                    </li>
+                `).join('');
+
+                // Logs
+                const lList = document.getElementById('logsList');
+                lList.innerHTML = this.state.logs.map((l, i) => `
+                    <li class="flex items-start p-2 border-b border-slate-100 last:border-0 text-sm">
+                        <i class="fa-solid fa-clock text-slate-300 mt-1 mr-2 text-xs"></i>
+                        <span class="text-slate-700 flex-1">${l}</span>
+                    </li>
+                `).join('');
+            },
+
+            addAudience: function() {
+                const input = document.getElementById('newAudienceInput');
+                if (input.value.trim()) {
+                    this.state.audiences.unshift(input.value.trim());
+                    input.value = '';
+                    this.renderLists();
+                }
+            },
+
+            removeAudience: function(index) {
+                this.state.audiences.splice(index, 1);
+                this.renderLists();
+            },
+
+            addLog: function() {
+                const input = document.getElementById('newLogInput');
+                if (input.value.trim()) {
+                    const time = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit'});
+                    this.state.logs.unshift(`[${time}] ${input.value.trim()}`);
+                    input.value = '';
+                    this.renderLists();
+                }
+            }
+        };
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>
