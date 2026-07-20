@@ -6,6 +6,7 @@
     <title>Meta 廣告成效總覽</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-100 text-slate-800">
@@ -15,6 +16,32 @@
     </header>
 
     <main class="p-6 space-y-6">
+
+        <!-- 當月花費進度總覽 -->
+        <div class="kpi-card">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-3">
+                        <label for="monthlyBudgetInput" class="kpi-label">當月預算</label>
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">NT$</span>
+                            <input type="number" id="monthlyBudgetInput" class="pl-9 pr-2 py-1 border border-slate-300 rounded-lg text-sm w-32">
+                        </div>
+                    </div>
+                    <div id="budgetProgressText" class="text-sm text-slate-600 mb-1"></div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div id="budgetProgressBar" class="h-2 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 sm:min-w-[220px]">
+                    <div id="budgetStatusLight" class="w-4 h-4 rounded-full flex-shrink-0"></div>
+                    <div>
+                        <div id="budgetStatusText" class="text-sm font-medium"></div>
+                        <div id="idealDailySpendText" class="text-xs text-slate-500 mt-0.5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- 控制列：時間區間 + 指標勾選 -->
         <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -36,6 +63,12 @@
         <!-- KPI 卡片 -->
         <div id="kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- KPI 卡片會由 app.js 動態產生在這裡 -->
+        </div>
+
+        <!-- 成效趨勢圖 -->
+        <div class="kpi-card">
+            <div class="kpi-label mb-3">成效趨勢</div>
+            <canvas id="trendChart" height="90"></canvas>
         </div>
 
     </main>
