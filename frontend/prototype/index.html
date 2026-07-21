@@ -92,7 +92,10 @@
 
         <!-- 成效警示：活動群組與素材統一看過去7天，門檻可自訂（CPA 高於 / ROAS 低於 二擇一） -->
         <div class="kpi-card">
-            <div class="kpi-label mb-3">成效警示 (過去7天)</div>
+            <div class="kpi-label mb-3 flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>成效警示 (過去7天)</span>
+            </div>
 
             <div class="flex flex-wrap items-center gap-3 mb-4">
                 <select id="alertMetricSelect" class="border border-slate-300 rounded-lg text-sm px-3 py-1.5">
@@ -126,7 +129,10 @@
         <!-- 強勢素材清單：列出過去30天平均CPA有達成KPI目標的素材，並標示所屬Campaign/Adset與投遞狀態 -->
         <div class="kpi-card">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div class="kpi-label">強勢素材清單 (過去30天)</div>
+                <div class="kpi-label flex items-center gap-1.5">
+                    <span>🏆</span>
+                    <span>強勢素材清單 (過去30天)</span>
+                </div>
                 <div class="flex items-center gap-2">
                     <label for="topCreativeTargetInput" class="text-sm text-slate-600">目標 CPA 低於</label>
                     <div class="relative">

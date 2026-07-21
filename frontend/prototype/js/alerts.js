@@ -46,7 +46,7 @@ function findExceededReason(metrics, settings) {
     const isExceeded = config.direction === "high" ? value > settings.threshold : value < settings.threshold;
     if (!isExceeded) return null;
 
-    return `${config.label} ${config.formatValue(value)}（門檻 ${config.formatThreshold(settings.threshold)}）`;
+    return `${config.label} ${config.formatValue(value)}`;
 }
 
 // 素材的每日資料現在存了過去30天，這裡只取最後7筆（最近7天），警示才不會被30天平均掉
@@ -102,7 +102,7 @@ function renderAlertList(alerts, { summaryElementId, listElementId, emptyText })
     container.innerHTML = "";
 
     if (alerts.length === 0) {
-        container.innerHTML = `<div class="text-sm text-slate-500 py-2">${emptyText}</div>`;
+        container.innerHTML = `<div class="text-sm text-emerald-600 py-2">✅ ${emptyText}</div>`;
         return;
     }
 
@@ -118,10 +118,11 @@ function renderAlertList(alerts, { summaryElementId, listElementId, emptyText })
         const parentText = alert.parentName ? `所屬：${alert.parentName}` : "";
 
         const row = document.createElement("div");
-        row.className = "py-2 border-t border-slate-100 first:border-t-0";
+        row.className = "py-2 px-3 mb-2 last:mb-0 border-l-4 border-amber-400 bg-amber-50 rounded-r-md";
         row.innerHTML = `
-            <div class="text-sm font-medium">${alert.name}</div>
+            <div class="text-sm font-medium text-slate-800">${alert.name}</div>
             <div class="text-xs text-slate-500">${parentText}</div>
+            <div class="text-xs font-medium text-amber-700 mt-1">⚠ ${alert.reason}</div>
         `;
         container.appendChild(row);
     });
