@@ -61,9 +61,22 @@
             </div>
         </div>
 
-        <!-- KPI 卡片 -->
-        <div id="kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- KPI 卡片會由 app.js 動態產生在這裡 -->
+        <!-- KPI 卡片 + 廣告活動花費佔比：固定兩欄比例（3:1），左邊放KPI卡片，右邊放花費佔比甜甜圈圖 -->
+        <div class="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-4">
+            <div id="kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- KPI 卡片會由 app.js 動態產生在這裡 -->
+            </div>
+
+            <!-- 廣告活動花費佔比：依目前選取的時間區間，畫出各廣告活動花費佔比（甜甜圈圖），只顯示花費前5名，其餘歸類為「其他」 -->
+            <div class="kpi-card">
+                <div class="kpi-label mb-3">廣告活動花費佔比</div>
+                <div class="w-full max-w-[180px] mx-auto">
+                    <canvas id="spendShareChart"></canvas>
+                </div>
+                <div id="spend-share-legend" class="mt-4 space-y-2">
+                    <!-- 圖例列表由 campaign-spend-share.js 動態產生 -->
+                </div>
+            </div>
         </div>
 
         <!-- 成效趨勢圖 -->
@@ -148,6 +161,7 @@
 
     <script src="js/app.js"></script>
     <script src="js/table.js"></script>
+    <script src="js/campaign-spend-share.js"></script>
     <script src="js/alerts.js"></script>
     <script src="js/top-creatives.js"></script>
 </body>
