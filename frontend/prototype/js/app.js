@@ -211,6 +211,7 @@ fetch("../../data/performance_summary.json")
     .then((response) => response.json())
     .then((data) => {
         performanceData = data;
+        document.getElementById("accountNameText").textContent = data.accountInfo.accountName;
         renderCheckboxGroup("kpi-checkboxes", Object.keys(KPI_CONFIG), renderCards);
         renderCheckboxGroup("trend-checkboxes", TREND_METRICS, renderChart);
         renderAll();

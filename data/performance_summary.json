@@ -1,4 +1,7 @@
 {
+  "accountInfo": {
+    "accountName": "示範廣告帳號"
+  },
   "budgetPacing": {
     "monthlyBudgetDefault": 150000,
     "spendMonthToDate": 28700
