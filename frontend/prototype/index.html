@@ -67,7 +67,12 @@
 
         <!-- 成效趨勢圖 -->
         <div class="kpi-card">
-            <div class="kpi-label mb-3">成效趨勢</div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div class="kpi-label">成效趨勢</div>
+                <div id="trend-checkboxes" class="flex flex-wrap items-center gap-4">
+                    <!-- 指標勾選框由 app.js 動態產生 -->
+                </div>
+            </div>
             <canvas id="trendChart" height="90"></canvas>
         </div>
 

@@ -10,7 +10,7 @@ const KPI_CONFIG = {
 };
 
 // 成效趨勢圖不畫花費（花費之後會有專屬的「花費進度圖」功能）
-const TREND_CHART_EXCLUDED_METRICS = ["cost"];
+const TREND_METRICS = Object.keys(KPI_CONFIG).filter((key) => key !== "cost");
 
 let performanceData = null;
 let trendChart = null;
@@ -36,18 +36,19 @@ function formatChange(current, previous, better) {
     return `<span class="${colorClass} text-sm font-medium">${sign}${changePercent.toFixed(1)}%</span>`;
 }
 
-function getCheckedMetrics() {
-    const checkboxes = document.querySelectorAll("#kpi-checkboxes input[type=checkbox]");
+function getCheckedMetrics(containerId) {
+    const checkboxes = document.querySelectorAll(`#${containerId} input[type=checkbox]`);
     return Array.from(checkboxes)
         .filter((checkbox) => checkbox.checked)
         .map((checkbox) => checkbox.value);
 }
 
-function renderCheckboxes() {
-    const container = document.getElementById("kpi-checkboxes");
+// 產生一組指標勾選框，metricKeys 決定要出現哪些指標、onChange 決定勾選變動時要重畫什麼
+function renderCheckboxGroup(containerId, metricKeys, onChange) {
+    const container = document.getElementById(containerId);
     container.innerHTML = "";
 
-    Object.keys(KPI_CONFIG).forEach((key) => {
+    metricKeys.forEach((key) => {
         const label = document.createElement("label");
         label.className = "inline-flex items-center gap-1.5 text-sm cursor-pointer";
         label.innerHTML = `
@@ -57,13 +58,13 @@ function renderCheckboxes() {
         container.appendChild(label);
     });
 
-    container.addEventListener("change", renderAll);
+    container.addEventListener("change", onChange);
 }
 
 function renderCards() {
     const range = document.getElementById("rangeSelect").value;
     const rangeData = performanceData.ranges[range];
-    const checkedMetrics = getCheckedMetrics();
+    const checkedMetrics = getCheckedMetrics("kpi-checkboxes");
 
     const container = document.getElementById("kpi-cards");
     container.innerHTML = "";
@@ -87,8 +88,7 @@ function renderCards() {
 function renderChart() {
     const range = document.getElementById("rangeSelect").value;
     const rangeData = performanceData.ranges[range];
-    const checkedMetrics = getCheckedMetrics()
-        .filter((key) => !TREND_CHART_EXCLUDED_METRICS.includes(key));
+    const checkedMetrics = getCheckedMetrics("trend-checkboxes");
 
     const datasets = checkedMetrics.map((key) => {
         const config = KPI_CONFIG[key];
@@ -109,6 +109,25 @@ function renderChart() {
         trendChart.destroy();
     }
 
+    // 沒有指標用到的軸就不畫出來，不然會出現一條 0~1 的空白刻度
+    const usedAxes = new Set(checkedMetrics.map((key) => KPI_CONFIG[key].axis));
+    const scales = {};
+    if (usedAxes.has("yCurrency")) {
+        scales.yCurrency = {
+            type: "linear",
+            position: "left",
+            title: { display: true, text: "CPA（NT$）" }
+        };
+    }
+    if (usedAxes.has("yRate")) {
+        scales.yRate = {
+            type: "linear",
+            position: "right",
+            title: { display: true, text: "ROAS / CVR / CTR" },
+            grid: { drawOnChartArea: false }
+        };
+    }
+
     const ctx = document.getElementById("trendChart");
     trendChart = new Chart(ctx, {
         type: "line",
@@ -117,19 +136,7 @@ function renderChart() {
             datasets: datasets
         },
         options: {
-            scales: {
-                yCurrency: {
-                    type: "linear",
-                    position: "left",
-                    title: { display: true, text: "CPA（NT$）" }
-                },
-                yRate: {
-                    type: "linear",
-                    position: "right",
-                    title: { display: true, text: "ROAS / CVR / CTR" },
-                    grid: { drawOnChartArea: false }
-                }
-            },
+            scales: scales,
             plugins: {
                 tooltip: {
                     callbacks: {
@@ -168,7 +175,11 @@ function calcBudgetPacing() {
     return { budget, spend, daysRemaining, spendProgressPercent, diff, idealDailySpend };
 }
 
+const MONTHLY_BUDGET_STORAGE_KEY = "metaAdsDashboard.monthlyBudget";
+
 function renderBudgetPacing() {
+    localStorage.setItem(MONTHLY_BUDGET_STORAGE_KEY, document.getElementById("monthlyBudgetInput").value);
+
     const result = calcBudgetPacing();
 
     document.getElementById("budgetProgressText").textContent =
@@ -200,10 +211,12 @@ fetch("../../data/performance_summary.json")
     .then((response) => response.json())
     .then((data) => {
         performanceData = data;
-        renderCheckboxes();
+        renderCheckboxGroup("kpi-checkboxes", Object.keys(KPI_CONFIG), renderCards);
+        renderCheckboxGroup("trend-checkboxes", TREND_METRICS, renderChart);
         renderAll();
 
-        document.getElementById("monthlyBudgetInput").value = data.budgetPacing.monthlyBudgetDefault;
+        const savedBudget = localStorage.getItem(MONTHLY_BUDGET_STORAGE_KEY);
+        document.getElementById("monthlyBudgetInput").value = savedBudget !== null ? savedBudget : data.budgetPacing.monthlyBudgetDefault;
         renderBudgetPacing();
 
         document.getElementById("rangeSelect").addEventListener("change", renderAll);
