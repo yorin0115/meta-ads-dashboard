@@ -89,9 +89,43 @@
             </div>
         </div>
 
+        <!-- 成效警示：活動群組與素材統一看過去7天，門檻可自訂（CPA 高於 / ROAS 低於 二擇一） -->
+        <div class="kpi-card">
+            <div class="kpi-label mb-3">成效警示 (過去7天)</div>
+
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <select id="alertMetricSelect" class="border border-slate-300 rounded-lg text-sm px-3 py-1.5">
+                    <option value="cpa">CPA 高於</option>
+                    <option value="roas">ROAS 低於</option>
+                </select>
+                <input type="number" id="alertThresholdInput" step="0.1" class="border border-slate-300 rounded-lg text-sm px-3 py-1.5 w-28">
+                <div id="alertThresholdUnitText" class="text-sm text-slate-500"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-sm font-medium text-slate-600">活動群組</div>
+                        <div id="adsetAlertSummaryText" class="text-sm font-medium text-slate-600"></div>
+                    </div>
+                    <div id="adset-alert-list"></div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-sm font-medium text-slate-600">素材</div>
+                        <div id="creativeAlertSummaryText" class="text-sm font-medium text-slate-600"></div>
+                    </div>
+                    <div id="creative-alert-list"></div>
+                </div>
+            </div>
+
+            <div id="alert-pagination"></div>
+        </div>
+
     </main>
 
     <script src="js/app.js"></script>
     <script src="js/table.js"></script>
+    <script src="js/alerts.js"></script>
 </body>
 </html>

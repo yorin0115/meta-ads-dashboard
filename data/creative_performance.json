@@ -1,0 +1,169 @@
+{
+  "campaigns": [
+    { "id": "camp_awareness", "name": "品牌認知關注" },
+    { "id": "camp_traffic", "name": "網站流量轉換" },
+    { "id": "camp_leads", "name": "名單蒐集" },
+    { "id": "camp_catalog", "name": "型錄購物行銷" },
+    { "id": "camp_remarketing", "name": "再行銷_舊客召回" }
+  ],
+  "adsets": [
+    { "id": "adset_awareness_video", "name": "品牌認知_影片素材", "campaignId": "camp_awareness" },
+    { "id": "adset_traffic_carousel", "name": "網站流量_輪播廣告", "campaignId": "camp_traffic" },
+    { "id": "adset_traffic_lookalike", "name": "網站流量_類似受眾", "campaignId": "camp_traffic" },
+    { "id": "adset_leads_form", "name": "名單蒐集_名單表單", "campaignId": "camp_leads" },
+    { "id": "adset_catalog_dynamic", "name": "型錄購物_動態商品", "campaignId": "camp_catalog" },
+    { "id": "adset_remarketing_static", "name": "再行銷_靜態圖片", "campaignId": "camp_remarketing" }
+  ],
+  "creatives": [
+    { "id": "creative_awareness_video_a", "name": "品牌影片_15秒版", "adsetId": "adset_awareness_video" },
+    { "id": "creative_awareness_video_b", "name": "品牌影片_30秒版", "adsetId": "adset_awareness_video" },
+    { "id": "creative_traffic_carousel_a", "name": "熱銷商品輪播", "adsetId": "adset_traffic_carousel" },
+    { "id": "creative_traffic_lookalike_a", "name": "類似受眾主打圖", "adsetId": "adset_traffic_lookalike" },
+    { "id": "creative_leads_form_a", "name": "限時優惠名單表單", "adsetId": "adset_leads_form" },
+    { "id": "creative_leads_form_b", "name": "免費諮詢名單表單", "adsetId": "adset_leads_form" },
+    { "id": "creative_catalog_dynamic_a", "name": "動態商品輪播圖", "adsetId": "adset_catalog_dynamic" },
+    { "id": "creative_remarketing_static_a", "name": "回購優惠靜態圖", "adsetId": "adset_remarketing_static" },
+    { "id": "creative_remarketing_static_b", "name": "會員專屬靜態圖", "adsetId": "adset_remarketing_static" }
+  ],
+  "dailyData": {
+    "adsets": {
+      "adset_awareness_video": [
+        { "date": "07/14", "cost": 320, "conversions": 2, "revenue": 830 },
+        { "date": "07/15", "cost": 310, "conversions": 2, "revenue": 805 },
+        { "date": "07/16", "cost": 330, "conversions": 2, "revenue": 860 },
+        { "date": "07/17", "cost": 305, "conversions": 2, "revenue": 795 },
+        { "date": "07/18", "cost": 340, "conversions": 2, "revenue": 885 },
+        { "date": "07/19", "cost": 315, "conversions": 2, "revenue": 820 },
+        { "date": "07/20", "cost": 325, "conversions": 2, "revenue": 845 }
+      ],
+      "adset_traffic_carousel": [
+        { "date": "07/14", "cost": 510, "conversions": 5, "revenue": 2050 },
+        { "date": "07/15", "cost": 495, "conversions": 5, "revenue": 1980 },
+        { "date": "07/16", "cost": 505, "conversions": 5, "revenue": 2040 },
+        { "date": "07/17", "cost": 500, "conversions": 5, "revenue": 2010 },
+        { "date": "07/18", "cost": 515, "conversions": 5, "revenue": 2070 },
+        { "date": "07/19", "cost": 490, "conversions": 5, "revenue": 1970 },
+        { "date": "07/20", "cost": 500, "conversions": 5, "revenue": 2010 }
+      ],
+      "adset_traffic_lookalike": [
+        { "date": "07/14", "cost": 350, "conversions": 3, "revenue": 1450 },
+        { "date": "07/15", "cost": 345, "conversions": 3, "revenue": 1430 },
+        { "date": "07/16", "cost": 355, "conversions": 3, "revenue": 1470 },
+        { "date": "07/17", "cost": 340, "conversions": 3, "revenue": 1410 },
+        { "date": "07/18", "cost": 360, "conversions": 3, "revenue": 1490 },
+        { "date": "07/19", "cost": 348, "conversions": 3, "revenue": 1440 },
+        { "date": "07/20", "cost": 352, "conversions": 3, "revenue": 1460 }
+      ],
+      "adset_leads_form": [
+        { "date": "07/14", "cost": 300, "conversions": 3, "revenue": 1200 },
+        { "date": "07/15", "cost": 310, "conversions": 3, "revenue": 1240 },
+        { "date": "07/16", "cost": 295, "conversions": 3, "revenue": 1180 },
+        { "date": "07/17", "cost": 305, "conversions": 3, "revenue": 1220 },
+        { "date": "07/18", "cost": 300, "conversions": 3, "revenue": 1200 },
+        { "date": "07/19", "cost": 308, "conversions": 3, "revenue": 1232 },
+        { "date": "07/20", "cost": 380, "conversions": 2, "revenue": 950 }
+      ],
+      "adset_catalog_dynamic": [
+        { "date": "07/14", "cost": 400, "conversions": 4, "revenue": 1700 },
+        { "date": "07/15", "cost": 410, "conversions": 4, "revenue": 1745 },
+        { "date": "07/16", "cost": 395, "conversions": 4, "revenue": 1680 },
+        { "date": "07/17", "cost": 405, "conversions": 4, "revenue": 1720 },
+        { "date": "07/18", "cost": 400, "conversions": 4, "revenue": 1700 },
+        { "date": "07/19", "cost": 415, "conversions": 4, "revenue": 1765 },
+        { "date": "07/20", "cost": 398, "conversions": 4, "revenue": 1690 }
+      ],
+      "adset_remarketing_static": [
+        { "date": "07/14", "cost": 250, "conversions": 2, "revenue": 700 },
+        { "date": "07/15", "cost": 240, "conversions": 2, "revenue": 670 },
+        { "date": "07/16", "cost": 260, "conversions": 2, "revenue": 730 },
+        { "date": "07/17", "cost": 245, "conversions": 2, "revenue": 690 },
+        { "date": "07/18", "cost": 255, "conversions": 2, "revenue": 715 },
+        { "date": "07/19", "cost": 248, "conversions": 2, "revenue": 695 },
+        { "date": "07/20", "cost": 252, "conversions": 2, "revenue": 705 }
+      ]
+    },
+    "creatives": {
+      "creative_awareness_video_a": [
+        { "date": "07/14", "cost": 200, "conversions": 1, "revenue": 500 },
+        { "date": "07/15", "cost": 195, "conversions": 1, "revenue": 485 },
+        { "date": "07/16", "cost": 205, "conversions": 1, "revenue": 510 },
+        { "date": "07/17", "cost": 190, "conversions": 1, "revenue": 475 },
+        { "date": "07/18", "cost": 210, "conversions": 1, "revenue": 525 },
+        { "date": "07/19", "cost": 198, "conversions": 1, "revenue": 495 },
+        { "date": "07/20", "cost": 202, "conversions": 1, "revenue": 505 }
+      ],
+      "creative_awareness_video_b": [
+        { "date": "07/14", "cost": 150, "conversions": 2, "revenue": 600 },
+        { "date": "07/15", "cost": 145, "conversions": 2, "revenue": 585 },
+        { "date": "07/16", "cost": 155, "conversions": 2, "revenue": 615 },
+        { "date": "07/17", "cost": 148, "conversions": 2, "revenue": 595 },
+        { "date": "07/18", "cost": 152, "conversions": 2, "revenue": 610 },
+        { "date": "07/19", "cost": 147, "conversions": 2, "revenue": 590 },
+        { "date": "07/20", "cost": 150, "conversions": 2, "revenue": 605 }
+      ],
+      "creative_traffic_carousel_a": [
+        { "date": "07/14", "cost": 250, "conversions": 3, "revenue": 1000 },
+        { "date": "07/15", "cost": 245, "conversions": 3, "revenue": 985 },
+        { "date": "07/16", "cost": 255, "conversions": 3, "revenue": 1015 },
+        { "date": "07/17", "cost": 248, "conversions": 3, "revenue": 995 },
+        { "date": "07/18", "cost": 252, "conversions": 3, "revenue": 1010 },
+        { "date": "07/19", "cost": 247, "conversions": 3, "revenue": 990 },
+        { "date": "07/20", "cost": 250, "conversions": 3, "revenue": 1000 }
+      ],
+      "creative_traffic_lookalike_a": [
+        { "date": "07/14", "cost": 175, "conversions": 2, "revenue": 700 },
+        { "date": "07/15", "cost": 172, "conversions": 2, "revenue": 690 },
+        { "date": "07/16", "cost": 178, "conversions": 2, "revenue": 710 },
+        { "date": "07/17", "cost": 170, "conversions": 2, "revenue": 685 },
+        { "date": "07/18", "cost": 180, "conversions": 2, "revenue": 720 },
+        { "date": "07/19", "cost": 173, "conversions": 2, "revenue": 695 },
+        { "date": "07/20", "cost": 176, "conversions": 2, "revenue": 705 }
+      ],
+      "creative_leads_form_a": [
+        { "date": "07/14", "cost": 150, "conversions": 2, "revenue": 600 },
+        { "date": "07/15", "cost": 148, "conversions": 2, "revenue": 592 },
+        { "date": "07/16", "cost": 152, "conversions": 2, "revenue": 608 },
+        { "date": "07/17", "cost": 147, "conversions": 2, "revenue": 588 },
+        { "date": "07/18", "cost": 153, "conversions": 2, "revenue": 612 },
+        { "date": "07/19", "cost": 149, "conversions": 2, "revenue": 596 },
+        { "date": "07/20", "cost": 220, "conversions": 1, "revenue": 500 }
+      ],
+      "creative_leads_form_b": [
+        { "date": "07/14", "cost": 140, "conversions": 2, "revenue": 560 },
+        { "date": "07/15", "cost": 138, "conversions": 2, "revenue": 550 },
+        { "date": "07/16", "cost": 142, "conversions": 2, "revenue": 570 },
+        { "date": "07/17", "cost": 137, "conversions": 2, "revenue": 548 },
+        { "date": "07/18", "cost": 143, "conversions": 2, "revenue": 572 },
+        { "date": "07/19", "cost": 139, "conversions": 2, "revenue": 556 },
+        { "date": "07/20", "cost": 141, "conversions": 2, "revenue": 564 }
+      ],
+      "creative_catalog_dynamic_a": [
+        { "date": "07/14", "cost": 200, "conversions": 2, "revenue": 820 },
+        { "date": "07/15", "cost": 205, "conversions": 2, "revenue": 840 },
+        { "date": "07/16", "cost": 198, "conversions": 2, "revenue": 810 },
+        { "date": "07/17", "cost": 202, "conversions": 2, "revenue": 825 },
+        { "date": "07/18", "cost": 200, "conversions": 2, "revenue": 820 },
+        { "date": "07/19", "cost": 207, "conversions": 2, "revenue": 848 },
+        { "date": "07/20", "cost": 199, "conversions": 2, "revenue": 815 }
+      ],
+      "creative_remarketing_static_a": [
+        { "date": "07/14", "cost": 140, "conversions": 2, "revenue": 390 },
+        { "date": "07/15", "cost": 135, "conversions": 2, "revenue": 375 },
+        { "date": "07/16", "cost": 145, "conversions": 2, "revenue": 405 },
+        { "date": "07/17", "cost": 138, "conversions": 2, "revenue": 385 },
+        { "date": "07/18", "cost": 142, "conversions": 2, "revenue": 397 },
+        { "date": "07/19", "cost": 136, "conversions": 2, "revenue": 380 },
+        { "date": "07/20", "cost": 140, "conversions": 2, "revenue": 392 }
+      ],
+      "creative_remarketing_static_b": [
+        { "date": "07/14", "cost": 120, "conversions": 2, "revenue": 480 },
+        { "date": "07/15", "cost": 118, "conversions": 2, "revenue": 474 },
+        { "date": "07/16", "cost": 122, "conversions": 2, "revenue": 488 },
+        { "date": "07/17", "cost": 117, "conversions": 2, "revenue": 470 },
+        { "date": "07/18", "cost": 123, "conversions": 2, "revenue": 492 },
+        { "date": "07/19", "cost": 119, "conversions": 2, "revenue": 478 },
+        { "date": "07/20", "cost": 190, "conversions": 1, "revenue": 460 }
+      ]
+    }
+  }
+}
