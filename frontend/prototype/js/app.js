@@ -3,10 +3,10 @@
 // color 是趨勢圖線條顏色、axis 決定趨勢圖要畫在哪一條 Y 軸（花費之後會有專屬的進度圖，這裡不需要 axis）
 const KPI_CONFIG = {
     cost: { label: "花費", format: "currency", better: "down", color: "#1877F2" },
-    cpa: { label: "CPA（每次轉換成本）", format: "currency", better: "down", color: "#F59E0B", axis: "yCurrency" },
-    roas: { label: "ROAS（廣告投報率）", format: "ratio", better: "up", color: "#10B981", axis: "yRate" },
-    cvr: { label: "CVR（轉換率）", format: "percent", better: "up", color: "#8B5CF6", axis: "yRate" },
-    ctr: { label: "CTR（點擊率）", format: "percent", better: "up", color: "#EF4444", axis: "yRate" }
+    cpa: { label: "CPA (每次轉換成本)", format: "currency", better: "down", color: "#F59E0B", axis: "yCurrency" },
+    roas: { label: "ROAS (廣告投報率)", format: "ratio", better: "up", color: "#10B981", axis: "yRate" },
+    cvr: { label: "CVR (轉換率)", format: "percent", better: "up", color: "#8B5CF6", axis: "yRate" },
+    ctr: { label: "CTR (點擊率)", format: "percent", better: "up", color: "#EF4444", axis: "yRate" }
 };
 
 // 成效趨勢圖不畫花費（花費之後會有專屬的「花費進度圖」功能）

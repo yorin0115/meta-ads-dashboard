@@ -76,8 +76,22 @@
             <canvas id="trendChart" height="90"></canvas>
         </div>
 
+        <!-- 成效表現表格：依廣告活動列出各項指標，點欄位標題可排序 -->
+        <div class="kpi-card">
+            <div class="kpi-label mb-3">成效指標</div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr id="performance-table-header"></tr>
+                    </thead>
+                    <tbody id="performance-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
     <script src="js/app.js"></script>
+    <script src="js/table.js"></script>
 </body>
 </html>
