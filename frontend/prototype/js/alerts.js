@@ -102,7 +102,7 @@ function renderAlertList(alerts, { summaryElementId, listElementId, emptyText })
     container.innerHTML = "";
 
     if (alerts.length === 0) {
-        container.innerHTML = `<div class="text-sm text-emerald-600 py-2">✅ ${emptyText}</div>`;
+        container.innerHTML = `<div class="text-sm text-[#0BD99F] py-2">✅ ${emptyText}</div>`;
         return;
     }
 
@@ -118,11 +118,11 @@ function renderAlertList(alerts, { summaryElementId, listElementId, emptyText })
         const parentText = alert.parentName ? `所屬：${alert.parentName}` : "";
 
         const row = document.createElement("div");
-        row.className = "py-2 px-3 mb-2 last:mb-0 border-l-4 border-amber-400 bg-amber-50 rounded-r-md";
+        row.className = "py-2 px-3 mb-2 last:mb-0 border-l-4 border-[#FFEA7A] bg-[#F2F2F2] rounded-r-md";
         row.innerHTML = `
-            <div class="text-sm font-medium text-slate-800">${alert.name}</div>
+            <div class="text-sm font-medium text-[#2B2B2B]">${alert.name}</div>
             <div class="text-xs text-slate-500">${parentText}</div>
-            <div class="text-xs font-medium text-amber-700 mt-1">⚠ ${alert.reason}</div>
+            <div class="text-xs font-medium text-[#FC9626] mt-1">⚠ ${alert.reason}</div>
         `;
         container.appendChild(row);
     });

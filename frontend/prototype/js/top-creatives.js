@@ -63,14 +63,14 @@ function renderTopCreativeList(rows) {
         const statusConfig = CREATIVE_STATUS_CONFIG[row.status] || CREATIVE_STATUS_CONFIG.active;
 
         const rowEl = document.createElement("div");
-        rowEl.className = "py-2.5 px-3 mb-2 last:mb-0 border-l-4 border-emerald-400 bg-emerald-50 rounded-r-md flex items-center justify-between gap-3";
+        rowEl.className = "py-2.5 px-3 mb-2 last:mb-0 border-l-4 border-[#0BD99F] bg-[#F2F2F2] rounded-r-md flex items-center justify-between gap-3";
         rowEl.innerHTML = `
             <div>
-                <div class="text-sm font-medium">${row.name}</div>
+                <div class="text-sm font-medium text-[#2B2B2B]">${row.name}</div>
                 <div class="text-xs text-slate-500">${row.campaignName} > ${row.adsetName}</div>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
-                <span class="text-sm font-semibold text-emerald-600">✓ NT$ ${Math.round(row.cpa).toLocaleString("zh-TW")}</span>
+                <span class="text-sm font-semibold text-[#10B981]">CPA NT$ ${Math.round(row.cpa).toLocaleString("zh-TW")}</span>
                 <span class="text-xs px-2 py-0.5 rounded-full ${statusConfig.className}">${statusConfig.label}</span>
             </div>
         `;

@@ -1,17 +1,18 @@
 .kpi-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e5e5e5;
     border-radius: 0.75rem;
     padding: 1.25rem;
 }
 
 .kpi-label {
     font-size: 0.875rem;
-    color: #64748b;
+    color: #6b6b6b;
 }
 
 .kpi-value {
     font-size: 1.5rem;
     font-weight: 700;
     margin-top: 0.25rem;
+    color: #2b2b2b;
 }

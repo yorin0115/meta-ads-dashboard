@@ -2,7 +2,7 @@
 // label 是中文名稱、format 決定數字怎麼呈現、better 決定「數字變大還是變小算是變好」
 // color 是趨勢圖線條顏色、axis 決定趨勢圖要畫在哪一條 Y 軸（花費之後會有專屬的進度圖，這裡不需要 axis）
 const KPI_CONFIG = {
-    cost: { label: "花費", format: "currency", better: "down", color: "#1877F2" },
+    cost: { label: "花費", format: "currency", better: "down", color: "#3A65ED" },
     cpa: { label: "CPA (每次轉換成本)", format: "currency", better: "down", color: "#F59E0B", axis: "yCurrency" },
     roas: { label: "ROAS (廣告投報率)", format: "ratio", better: "up", color: "#10B981", axis: "yRate" },
     cvr: { label: "CVR (轉換率)", format: "percent", better: "up", color: "#8B5CF6", axis: "yRate" },
