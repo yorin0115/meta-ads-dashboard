@@ -1,0 +1,50 @@
+// 後端API的位置。之後如果換到別的地方跑（例如部署到伺服器上），只要改這一個地方就好
+const API_BASE_URL = "http://127.0.0.1:8000";
+
+// 把某個日期往前/往後推 N 天
+function addDays(dateObj, days) {
+    const result = new Date(dateObj);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+
+// 注意：不能用 dateObj.toISOString()，那個會先轉換成UTC時間，
+// 在台灣（UTC+8）以外的時區，日期可能會因此差了一天
+function formatDateAsISO(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+// 把畫面上「時間區間」下拉選單選的值（過去1/7/30天、當月），換算成打API要用的實際日期區間。
+// 資料只算到「昨天」為止（跟 app.js 裡當月預算計算的規則一致：今天的花費還沒完整，不列入計算）
+function getDateRangeForPreset(rangeKey) {
+    const today = new Date();
+    const yesterday = addDays(today, -1);
+
+    if (rangeKey === "1d") {
+        return { startDate: formatDateAsISO(yesterday), endDate: formatDateAsISO(yesterday) };
+    }
+    if (rangeKey === "7d") {
+        return { startDate: formatDateAsISO(addDays(yesterday, -6)), endDate: formatDateAsISO(yesterday) };
+    }
+    if (rangeKey === "30d") {
+        return { startDate: formatDateAsISO(addDays(yesterday, -29)), endDate: formatDateAsISO(yesterday) };
+    }
+
+    // month：當月1號到昨天
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return { startDate: formatDateAsISO(firstDayOfMonth), endDate: formatDateAsISO(yesterday) };
+}
+
+// 依行銷活動列出指定日期區間的成效（花費、曝光、點擊...等，CPA/CPC/CPM/CTR/CVR/ROAS後端已經算好）
+// 花費佔比圖表（campaign-spend-share.js）跟成效表格（table.js）都會用到這個
+async function fetchCampaignPerformance(startDate, endDate) {
+    const url = `${API_BASE_URL}/api/campaigns/performance?start_date=${startDate}&end_date=${endDate}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`API回應錯誤：${response.status}`);
+    }
+    return response.json();
+}

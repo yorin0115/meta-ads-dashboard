@@ -1,6 +1,6 @@
 // 表格欄位設定：label 是欄位標題、format 決定數字怎麼呈現
-// cost / impressions / clicks / reach / conversions / revenue 是 mock data 裡的原始數字
-// ctr、cpc、cpm、roas、cpa、cvr 都是用原始數字「即時算出來」，不是寫死在資料裡
+// cost / impressions / clicks / reach / conversions 是後端API算好的原始加總數字
+// ctr、cpc、cpm、roas、cpa、cvr 也都是後端 /api/campaigns/performance 算好直接回傳的，這裡不用重算
 const TABLE_METRIC_CONFIG = {
     cost: { label: "Spend", format: "currency" },
     impressions: { label: "Impressions", format: "integer" },
@@ -17,7 +17,7 @@ const TABLE_METRIC_CONFIG = {
 
 const TABLE_COLUMNS = ["name", ...Object.keys(TABLE_METRIC_CONFIG)];
 
-let campaignPerformanceData = null;
+let campaignPerformanceRows = null;
 let tableSortState = { key: "cost", direction: "desc" };
 
 function formatTableValue(value, format) {
@@ -39,29 +39,22 @@ function formatTableValue(value, format) {
     return value;
 }
 
-// 把每個廣告活動的原始數字，換算成表格要顯示的所有指標
-function buildTableRows(rangeKey) {
-    const rangeData = campaignPerformanceData.ranges[rangeKey].data;
-
-    return campaignPerformanceData.campaigns.map((campaign) => {
-        const raw = rangeData[campaign.id];
-
-        // 分母是 0 的話（例如當天完全沒有點擊或轉換），指標算不出來，改用 null 表示「無資料」
-        return {
-            name: campaign.name,
-            cost: raw.cost,
-            impressions: raw.impressions,
-            clicks: raw.clicks,
-            reach: raw.reach,
-            conversions: raw.conversions,
-            ctr: raw.impressions > 0 ? (raw.clicks / raw.impressions) * 100 : null,
-            cpc: raw.clicks > 0 ? raw.cost / raw.clicks : null,
-            cpm: raw.impressions > 0 ? (raw.cost / raw.impressions) * 1000 : null,
-            roas: raw.cost > 0 ? raw.revenue / raw.cost : null,
-            cpa: raw.conversions > 0 ? raw.cost / raw.conversions : null,
-            cvr: raw.clicks > 0 ? (raw.conversions / raw.clicks) * 100 : null
-        };
-    });
+// 把API回傳的欄位對應成表格要用的列資料（CPA/CPC/CPM/CTR/CVR/ROAS後端都已經算好了，這裡不用重算）
+function buildTableRows(campaignRows) {
+    return campaignRows.map((row) => ({
+        name: row.name,
+        cost: row.cost,
+        impressions: row.impressions,
+        clicks: row.clicks,
+        reach: row.reach,
+        conversions: row.conversions,
+        ctr: row.ctr,
+        cpc: row.cpc,
+        cpm: row.cpm,
+        roas: row.roas,
+        cpa: row.cpa,
+        cvr: row.cvr
+    }));
 }
 
 function sortRows(rows, key, direction) {
@@ -125,21 +118,29 @@ function renderTableBody(rows) {
     });
 }
 
-// 表格套用跟 KPI 卡片/趨勢圖同一個「時間區間」下拉選單，畫面上只需要一組日期篩選
+// 只是重新排序、重畫畫面，不會再打一次API——排序是純前端的操作，資料已經在 campaignPerformanceRows 裡了
 function renderTable() {
-    const range = document.getElementById("rangeSelect").value;
-    const rows = buildTableRows(range);
-    const sortedRows = sortRows(rows, tableSortState.key, tableSortState.direction);
+    if (!campaignPerformanceRows) return;
 
+    const sortedRows = sortRows(campaignPerformanceRows, tableSortState.key, tableSortState.direction);
     renderTableHeader();
     renderTableBody(sortedRows);
 }
 
-fetch("../../data/campaign_performance.json")
-    .then((response) => response.json())
-    .then((data) => {
-        campaignPerformanceData = data;
+// 表格套用跟 KPI 卡片/趨勢圖同一個「時間區間」下拉選單，畫面上只需要一組日期篩選
+// 時間區間改變時才需要重新打API拿資料，排序不用
+async function loadAndRenderTable() {
+    const range = document.getElementById("rangeSelect").value;
+    const { startDate, endDate } = getDateRangeForPreset(range);
+
+    try {
+        const campaignRows = await fetchCampaignPerformance(startDate, endDate);
+        campaignPerformanceRows = buildTableRows(campaignRows);
         renderTable();
-        document.getElementById("rangeSelect").addEventListener("change", renderTable);
-    })
-    .catch((error) => console.error("讀取成效表格資料失敗：", error));
+    } catch (error) {
+        console.error("讀取成效表格資料失敗：", error);
+    }
+}
+
+loadAndRenderTable();
+document.getElementById("rangeSelect").addEventListener("change", loadAndRenderTable);

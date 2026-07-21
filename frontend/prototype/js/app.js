@@ -12,10 +12,17 @@ const KPI_CONFIG = {
 // 成效趨勢圖不畫花費（花費之後會有專屬的「花費進度圖」功能）
 const TREND_METRICS = Object.keys(KPI_CONFIG).filter((key) => key !== "cost");
 
-let performanceData = null;
+// currentSummary 是 /api/performance/summary 的回應：{ current, previous, trend }
+// 跟著 rangeSelect 變動；月預算用的「當月至今花費」是另一個獨立的數字，不受 rangeSelect 影響，見 spendMonthToDate
+let currentSummary = null;
+let spendMonthToDate = 0;
 let trendChart = null;
 
+// ROAS目前沒有營收資料來源，後端一律回傳null，這裡統一顯示成"–"
 function formatValue(value, format) {
+    if (value === null) {
+        return "–";
+    }
     if (format === "currency") {
         return "NT$ " + Math.round(value).toLocaleString("zh-TW");
     }
@@ -28,7 +35,12 @@ function formatValue(value, format) {
     return value;
 }
 
+// current/previous任何一個算不出來（null）、或上一期間完全沒有花費資料（0），都沒辦法算漲跌%
 function formatChange(current, previous, better) {
+    if (current === null || previous === null || previous === 0) {
+        return `<span class="text-slate-400 text-sm font-medium">–</span>`;
+    }
+
     const changePercent = ((current - previous) / previous) * 100;
     const sign = changePercent > 0 ? "+" : "";
     const isGood = better === "up" ? changePercent > 0 : changePercent < 0;
@@ -61,9 +73,8 @@ function renderCheckboxGroup(containerId, metricKeys, onChange) {
     container.addEventListener("change", onChange);
 }
 
+// 純畫面重畫，不會打API——資料已經在 currentSummary 裡了，勾選指標只是決定要顯示哪幾張卡片
 function renderCards() {
-    const range = document.getElementById("rangeSelect").value;
-    const rangeData = performanceData.ranges[range];
     const checkedMetrics = getCheckedMetrics("kpi-checkboxes");
 
     const container = document.getElementById("kpi-cards");
@@ -71,8 +82,8 @@ function renderCards() {
 
     checkedMetrics.forEach((key) => {
         const config = KPI_CONFIG[key];
-        const current = rangeData.current[key];
-        const previous = rangeData.previous[key];
+        const current = currentSummary.current[key];
+        const previous = currentSummary.previous[key];
 
         const card = document.createElement("div");
         card.className = "kpi-card";
@@ -85,16 +96,16 @@ function renderCards() {
     });
 }
 
+// 純畫面重畫，不會打API，道理跟 renderCards 一樣
 function renderChart() {
-    const range = document.getElementById("rangeSelect").value;
-    const rangeData = performanceData.ranges[range];
     const checkedMetrics = getCheckedMetrics("trend-checkboxes");
+    const trend = currentSummary.trend;
 
     const datasets = checkedMetrics.map((key) => {
         const config = KPI_CONFIG[key];
         return {
             label: config.label,
-            data: rangeData.trend.series[key],
+            data: trend.map((point) => point[key]),
             format: config.format,
             borderColor: config.color,
             backgroundColor: config.color,
@@ -132,7 +143,7 @@ function renderChart() {
     trendChart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: rangeData.trend.labels,
+            labels: trend.map((point) => point.date),
             datasets: datasets
         },
         options: {
@@ -157,10 +168,32 @@ function renderAll() {
     renderChart();
 }
 
+async function fetchPerformanceSummary(startDate, endDate) {
+    const url = `${API_BASE_URL}/api/performance/summary?start_date=${startDate}&end_date=${endDate}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`API回應錯誤：${response.status}`);
+    }
+    return response.json();
+}
+
+// 時間區間改變時才需要重新打API——KPI卡片跟趨勢圖都是同一份 currentSummary，一起重新抓、一起重畫
+async function loadAndRenderAll() {
+    const range = document.getElementById("rangeSelect").value;
+    const { startDate, endDate } = getDateRangeForPreset(range);
+
+    try {
+        currentSummary = await fetchPerformanceSummary(startDate, endDate);
+        renderAll();
+    } catch (error) {
+        console.error("讀取成效摘要資料失敗：", error);
+    }
+}
+
 // 算出當月預算相關的所有數字：花費進度、時間進度、理想日花費、燈號
 function calcBudgetPacing() {
     const budget = Number(document.getElementById("monthlyBudgetInput").value) || 0;
-    const spend = performanceData.budgetPacing.spendMonthToDate;
+    const spend = spendMonthToDate;
 
     const today = new Date();
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -176,6 +209,7 @@ function calcBudgetPacing() {
 }
 
 const MONTHLY_BUDGET_STORAGE_KEY = "metaAdsDashboard.monthlyBudget";
+const DEFAULT_MONTHLY_BUDGET = 150000; // 使用者還沒自己輸入過金額時，先顯示這個預設值
 
 function renderBudgetPacing() {
     localStorage.setItem(MONTHLY_BUDGET_STORAGE_KEY, document.getElementById("monthlyBudgetInput").value);
@@ -207,20 +241,39 @@ function renderBudgetPacing() {
         `剩餘 ${result.daysRemaining} 天，建議每天花費 NT$ ${Math.round(result.idealDailySpend).toLocaleString("zh-TW")}`;
 }
 
-fetch("../../data/performance_summary.json")
-    .then((response) => response.json())
-    .then((data) => {
-        performanceData = data;
-        document.getElementById("accountNameText").textContent = data.accountInfo.accountName;
+// 當月預算卡片的「花費進度」，不管KPI卡片那邊選了哪個時間區間，永遠都是看「當月至今」
+async function loadMonthToDateSpend() {
+    const { startDate, endDate } = getDateRangeForPreset("month");
+    const summary = await fetchPerformanceSummary(startDate, endDate);
+    return summary.current.cost;
+}
+
+async function init() {
+    try {
+        const range = document.getElementById("rangeSelect").value;
+        const { startDate, endDate } = getDateRangeForPreset(range);
+
+        const [summary, monthToDateSpend] = await Promise.all([
+            fetchPerformanceSummary(startDate, endDate),
+            loadMonthToDateSpend()
+        ]);
+
+        currentSummary = summary;
+        spendMonthToDate = monthToDateSpend;
+
         renderCheckboxGroup("kpi-checkboxes", Object.keys(KPI_CONFIG), renderCards);
         renderCheckboxGroup("trend-checkboxes", TREND_METRICS, renderChart);
         renderAll();
 
         const savedBudget = localStorage.getItem(MONTHLY_BUDGET_STORAGE_KEY);
-        document.getElementById("monthlyBudgetInput").value = savedBudget !== null ? savedBudget : data.budgetPacing.monthlyBudgetDefault;
+        document.getElementById("monthlyBudgetInput").value = savedBudget !== null ? savedBudget : DEFAULT_MONTHLY_BUDGET;
         renderBudgetPacing();
 
-        document.getElementById("rangeSelect").addEventListener("change", renderAll);
+        document.getElementById("rangeSelect").addEventListener("change", loadAndRenderAll);
         document.getElementById("monthlyBudgetInput").addEventListener("input", renderBudgetPacing);
-    })
-    .catch((error) => console.error("讀取成效資料失敗：", error));
+    } catch (error) {
+        console.error("讀取成效資料失敗：", error);
+    }
+}
+
+init();

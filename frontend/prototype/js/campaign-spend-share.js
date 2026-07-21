@@ -1,20 +1,18 @@
 // 廣告活動花費佔比：用甜甜圈圖顯示各廣告活動的花費佔比
 // 只顯示花費前5名的廣告活動，其餘全部加總算成「其他」，避免圖表被切得太零碎
+// 資料來源是後端 API（/api/campaigns/performance），不是本機的 mock JSON
 
 // 前5名依序使用這5個顏色，「其他」固定用灰色（跟花費排名無關，一定是最後一色）
 const SPEND_SHARE_COLORS = ["#3A65ED", "#F59E0B", "#10B981", "#8B5CF6", "#EF4444"];
 const SPEND_SHARE_OTHER_COLOR = "#9CA3AF";
 const SPEND_SHARE_TOP_N = 5;
 
-let campaignSpendShareData = null;
 let spendShareChart = null;
 
-// 把某個時間區間的每個廣告活動花費，由高到低排序，超過前5名的部分合併成「其他」
-function buildSpendShareSlices(rangeKey) {
-    const rangeData = campaignSpendShareData.ranges[rangeKey].data;
-
-    const costsByCampaign = campaignSpendShareData.campaigns
-        .map((campaign) => ({ name: campaign.name, cost: rangeData[campaign.id].cost }))
+// 把每個廣告活動的花費，由高到低排序，超過前5名的部分合併成「其他」
+function buildSpendShareSlices(campaignRows) {
+    const costsByCampaign = campaignRows
+        .map((row) => ({ name: row.name, cost: row.cost }))
         .sort((a, b) => b.cost - a.cost);
 
     const topSlices = costsByCampaign.slice(0, SPEND_SHARE_TOP_N);
@@ -83,21 +81,19 @@ function renderSpendShareLegend(slices) {
     });
 }
 
-function renderSpendShare() {
-    if (!campaignSpendShareData) return;
-
+async function renderSpendShare() {
     const range = document.getElementById("rangeSelect").value;
-    const slices = buildSpendShareSlices(range);
+    const { startDate, endDate } = getDateRangeForPreset(range);
 
-    renderSpendShareChart(slices);
-    renderSpendShareLegend(slices);
+    try {
+        const campaignRows = await fetchCampaignPerformance(startDate, endDate);
+        const slices = buildSpendShareSlices(campaignRows);
+        renderSpendShareChart(slices);
+        renderSpendShareLegend(slices);
+    } catch (error) {
+        console.error("讀取廣告活動花費佔比資料失敗：", error);
+    }
 }
 
-fetch("../../data/campaign_performance.json")
-    .then((response) => response.json())
-    .then((data) => {
-        campaignSpendShareData = data;
-        renderSpendShare();
-        document.getElementById("rangeSelect").addEventListener("change", renderSpendShare);
-    })
-    .catch((error) => console.error("讀取廣告活動花費佔比資料失敗：", error));
+renderSpendShare();
+document.getElementById("rangeSelect").addEventListener("change", renderSpendShare);

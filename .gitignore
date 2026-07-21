@@ -15,6 +15,7 @@ node_modules/
 # Data
 data/raw/
 data/processed/
+database/raw_data/
 
 
 # IDE
