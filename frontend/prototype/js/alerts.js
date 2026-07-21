@@ -49,13 +49,20 @@ function findExceededReason(metrics, settings) {
     return `${config.label} ${config.formatValue(value)}（門檻 ${config.formatThreshold(settings.threshold)}）`;
 }
 
+// 素材的每日資料現在存了過去30天，這裡只取最後7筆（最近7天），警示才不會被30天平均掉
+const ALERTS_LOOKBACK_DAYS = 7;
+function lastNDays(dailyEntries, n) {
+    return dailyEntries.slice(-n);
+}
+
 // 活動群組跟素材都統一看「過去7天」的加總數字
 function buildAdsetAlerts(data, settings) {
     const campaignById = new Map(data.campaigns.map((campaign) => [campaign.id, campaign]));
 
     return data.adsets
         .map((adset) => {
-            const reason = findExceededReason(aggregateDaily(data.dailyData.adsets[adset.id]), settings);
+            const recentDays = lastNDays(data.dailyData.adsets[adset.id], ALERTS_LOOKBACK_DAYS);
+            const reason = findExceededReason(aggregateDaily(recentDays), settings);
             if (!reason) return null;
 
             const parentCampaign = campaignById.get(adset.campaignId);
@@ -69,7 +76,8 @@ function buildCreativeAlerts(data, settings) {
 
     return data.creatives
         .map((creative) => {
-            const reason = findExceededReason(aggregateDaily(data.dailyData.creatives[creative.id]), settings);
+            const recentDays = lastNDays(data.dailyData.creatives[creative.id], ALERTS_LOOKBACK_DAYS);
+            const reason = findExceededReason(aggregateDaily(recentDays), settings);
             if (!reason) return null;
 
             const parentAdset = adsetById.get(creative.adsetId);
