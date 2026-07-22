@@ -1,6 +1,7 @@
 """把 database/raw_data/ 底下的4個CSV匯入資料庫。
 
 執行方式（要在 backend/ 這個資料夾底下執行）：
+    alembic upgrade head   # 第一次執行，或 models.py 有更新時，先建好/更新資料表
     python import_csv.py
 
 四個檔案怎麼串起來：
@@ -17,7 +18,7 @@ import io
 from datetime import date, datetime
 from pathlib import Path
 
-from app.database import Base, SessionLocal, engine
+from app.database import SessionLocal
 from app.models import Ad, AdSet, Campaign, DailyPerformance
 
 RAW_DATA_DIR = Path(__file__).resolve().parent.parent / "database" / "raw_data"
@@ -144,8 +145,6 @@ def import_daily_performance(session, name_to_ad_id: dict) -> None:
 
 
 def main() -> None:
-    Base.metadata.create_all(engine)
-
     session = SessionLocal()
     try:
         # 先清空這4張表，這樣重複執行這支腳本不會把資料匯入兩次
