@@ -94,8 +94,6 @@ def get_performance_summary(
 ):
     """整個帳號的KPI摘要：這段期間的加總指標、上一個等長期間的加總指標（用來算漲跌%）、
     還有這段期間每天的趨勢
-
-    對應前端 frontend/prototype/js/app.js 現在讀的 performance_summary.json
     """
     previous_start, previous_end = _get_previous_period(start_date, end_date)
 

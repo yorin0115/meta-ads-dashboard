@@ -20,8 +20,6 @@ def get_campaigns_performance(
 ):
     """依行銷活動加總指定日期區間的花費/曝光/點擊/轉換，並算出衍生指標
 
-    對應前端 frontend/prototype/js/table.js 現在讀的 campaign_performance.json。
-
     用「先查全部campaign，再用查出來的加總資料去對應」的方式，
     是為了讓某個時間區間內完全沒有成效資料的campaign也會出現在結果裡（顯示0），
     而不是直接消失不見——這樣跟現在前端的行為一致。
