@@ -27,17 +27,19 @@
 
 ## 專案結構
 
-- `frontend/prototype/` — 前端原型頁面
-- `backend/` — FastAPI 後端（尚未開發）
-- `database/` — 資料庫相關檔案（尚未開發）
-- `data/` — JSON mock data
+- `frontend/prototype/` — 前端原型頁面，直接打後端 API（不是純 mock data）
+- `backend/` — FastAPI 後端（已開發：app/、routers/、alembic migrations、pytest 測試）
+- `database/` — PostgreSQL 資料庫 + `raw_data/` 底下的原始 CSV（campaign/adset/ad/performance），用 `backend/import_csv.py` 匯入
+- `data/` — 舊的 JSON mock data 資料夾（已不使用，前端已改接後端 API）
 - `docs/` — 專案文件
 
 ## 目前開發階段
 
-- 只建立前端原型（frontend prototype）
-- 使用 JSON mock data，不連接真實資料庫
-- 尚未串接 Meta API
+- 前端原型已串接 FastAPI 後端，不再是 mock data
+- 後端已用 SQLAlchemy 建立 Campaign/AdSet/Ad/DailyPerformance 四張表，並用 Alembic 管理 migration
+- CPA/CPC/CPM/CTR/CVR/ROAS 等指標在後端即時計算（`backend/app/metrics.py`），不存進資料庫
+- 已有 pytest 單元測試（`backend/tests/`）
+- 尚未串接 Meta API（目前資料來自匯入的 CSV，不是即時拉 Meta 官方資料）
 - 不使用 React
 - 尚未使用 Supabase
 
