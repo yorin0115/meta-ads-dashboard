@@ -118,6 +118,47 @@ function renderTableBody(rows) {
     });
 }
 
+// 加總所有廣告活動算出「總計」列
+// Reach（觸及）不能直接加總：不同廣告活動觸及的受眾會重疊，加起來會比實際觸及人數多很多，所以這欄留空
+// CTR/CPC/CPM/CPA/CVR 也不能把每個廣告活動的數字直接加總或平均，要用加總後的原始數字重新計算才正確
+function calcTotalsRow(rows) {
+    const cost = rows.reduce((sum, row) => sum + row.cost, 0);
+    const impressions = rows.reduce((sum, row) => sum + row.impressions, 0);
+    const clicks = rows.reduce((sum, row) => sum + row.clicks, 0);
+    const conversions = rows.reduce((sum, row) => sum + row.conversions, 0);
+
+    return {
+        name: "總計",
+        cost,
+        impressions,
+        clicks,
+        reach: null,
+        conversions,
+        ctr: impressions > 0 ? (clicks / impressions) * 100 : null,
+        cpc: clicks > 0 ? cost / clicks : null,
+        cpm: impressions > 0 ? (cost / impressions) * 1000 : null,
+        roas: null,
+        cpa: conversions > 0 ? cost / conversions : null,
+        cvr: clicks > 0 ? (conversions / clicks) * 100 : null
+    };
+}
+
+function renderTableFooter(totalsRow) {
+    const footer = document.getElementById("performance-table-footer");
+    footer.innerHTML = "";
+
+    const tr = document.createElement("tr");
+    tr.className = "border-t-2 border-slate-300 font-semibold bg-slate-50";
+    tr.innerHTML = TABLE_COLUMNS.map((key) => {
+        if (key === "name") {
+            return `<td class="px-4 py-2 text-sm font-semibold whitespace-nowrap">${totalsRow.name}</td>`;
+        }
+        const format = TABLE_METRIC_CONFIG[key].format;
+        return `<td class="px-4 py-2 text-sm whitespace-nowrap">${formatTableValue(totalsRow[key], format)}</td>`;
+    }).join("");
+    footer.appendChild(tr);
+}
+
 // 只是重新排序、重畫畫面，不會再打一次API——排序是純前端的操作，資料已經在 campaignPerformanceRows 裡了
 function renderTable() {
     if (!campaignPerformanceRows) return;
@@ -125,6 +166,7 @@ function renderTable() {
     const sortedRows = sortRows(campaignPerformanceRows, tableSortState.key, tableSortState.direction);
     renderTableHeader();
     renderTableBody(sortedRows);
+    renderTableFooter(calcTotalsRow(campaignPerformanceRows));
 }
 
 // 表格套用跟 KPI 卡片/趨勢圖同一個「時間區間」下拉選單，畫面上只需要一組日期篩選
