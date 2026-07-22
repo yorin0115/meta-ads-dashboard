@@ -9,6 +9,50 @@ const SPEND_SHARE_TOP_N = 5;
 
 let spendShareChart = null;
 
+// 取得（或第一次建立）浮動提示框，附加在 <body> 上，不受圖表窄容器限制
+function getSpendShareTooltipEl() {
+    let tooltipEl = document.getElementById("spend-share-tooltip");
+    if (!tooltipEl) {
+        tooltipEl = document.createElement("div");
+        tooltipEl.id = "spend-share-tooltip";
+        tooltipEl.className = "chart-tooltip";
+        document.body.appendChild(tooltipEl);
+    }
+    return tooltipEl;
+}
+
+// 自訂 tooltip：Chart.js 預設會把提示框畫在 canvas 裡面，
+// 但這裡的甜甜圈圖被限制在 180px 窄欄位中，文字較長時會被切掉，
+// 所以改成獨立的 HTML 方框，跟著滑鼠位置浮動顯示，並確保不會超出視窗邊界
+function externalSpendShareTooltip(context) {
+    const tooltipEl = getSpendShareTooltipEl();
+    const tooltipModel = context.tooltip;
+
+    if (tooltipModel.opacity === 0) {
+        tooltipEl.style.opacity = 0;
+        return;
+    }
+
+    const dataPoint = tooltipModel.dataPoints && tooltipModel.dataPoints[0];
+    if (dataPoint) {
+        const item = context.chart.$spendShareSlices[dataPoint.dataIndex];
+        tooltipEl.innerHTML = `${item.name}：NT$ ${Math.round(item.cost).toLocaleString("zh-TW")}（${item.percent.toFixed(1)}%）`;
+    }
+
+    const canvasRect = context.chart.canvas.getBoundingClientRect();
+    let left = canvasRect.left + tooltipModel.caretX + 12;
+    let top = canvasRect.top + tooltipModel.caretY - tooltipEl.offsetHeight / 2;
+
+    // 如果超出視窗右邊，改成顯示在滑鼠左側，避免被畫面邊界切掉
+    if (left + tooltipEl.offsetWidth > window.innerWidth) {
+        left = canvasRect.left + tooltipModel.caretX - tooltipEl.offsetWidth - 12;
+    }
+
+    tooltipEl.style.left = `${left}px`;
+    tooltipEl.style.top = `${top}px`;
+    tooltipEl.style.opacity = 1;
+}
+
 // 把每個廣告活動的花費，由高到低排序，超過前5名的部分合併成「其他」
 function buildSpendShareSlices(campaignRows) {
     const costsByCampaign = campaignRows
@@ -53,16 +97,15 @@ function renderSpendShareChart(slices) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    callbacks: {
-                        label: (context) => {
-                            const item = slices[context.dataIndex];
-                            return `${item.name}：NT$ ${Math.round(item.cost).toLocaleString("zh-TW")}（${item.percent.toFixed(1)}%）`;
-                        }
-                    }
+                    enabled: false,
+                    external: externalSpendShareTooltip
                 }
             }
         }
     });
+
+    // 提供給 externalSpendShareTooltip 用，才能在提示框裡顯示活動名稱、花費、佔比
+    spendShareChart.$spendShareSlices = slices;
 }
 
 function renderSpendShareLegend(slices) {
