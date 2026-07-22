@@ -18,7 +18,7 @@ def get_campaigns_performance(
     end_date: date,
     db: Session = Depends(get_db),
 ):
-    """依行銷活動加總指定日期區間的花費/曝光/點擊/觸及/轉換，並算出衍生指標
+    """依行銷活動加總指定日期區間的花費/曝光/點擊/轉換，並算出衍生指標
 
     對應前端 frontend/prototype/js/table.js 現在讀的 campaign_performance.json。
 
@@ -34,7 +34,6 @@ def get_campaigns_performance(
             func.sum(DailyPerformance.cost).label("cost"),
             func.sum(DailyPerformance.impressions).label("impressions"),
             func.sum(DailyPerformance.clicks).label("clicks"),
-            func.sum(DailyPerformance.reach).label("reach"),
             func.sum(DailyPerformance.conversions).label("conversions"),
         )
         .join(AdSet, AdSet.campaign_id == Campaign.campaign_id)
@@ -52,7 +51,6 @@ def get_campaigns_performance(
         cost = float(agg.cost) if agg else 0.0
         impressions = agg.impressions if agg else 0
         clicks = agg.clicks if agg else 0
-        reach = agg.reach if agg else 0
         conversions = agg.conversions if agg else 0
 
         results.append(
@@ -62,7 +60,6 @@ def get_campaigns_performance(
                 cost=cost,
                 impressions=impressions,
                 clicks=clicks,
-                reach=reach,
                 conversions=conversions,
                 ctr=metrics.calc_ctr(clicks, impressions),
                 cpc=metrics.calc_cpc(cost, clicks),

@@ -1,11 +1,10 @@
 // 表格欄位設定：label 是欄位標題、format 決定數字怎麼呈現
-// cost / impressions / clicks / reach / conversions 是後端API算好的原始加總數字
+// cost / impressions / clicks / conversions 是後端API算好的原始加總數字
 // ctr、cpc、cpm、roas、cpa、cvr 也都是後端 /api/campaigns/performance 算好直接回傳的，這裡不用重算
 const TABLE_METRIC_CONFIG = {
     cost: { label: "Spend", format: "currency" },
     impressions: { label: "Impressions", format: "integer" },
-    reach: { label: "Reach", format: "integer" },
-    cpm: { label: "CPM", format: "currency" },    
+    cpm: { label: "CPM", format: "currency" },
     clicks: { label: "Clicks", format: "integer" },
     cpc: { label: "CPC", format: "currency" },
     ctr: { label: "CTR", format: "percent" },
@@ -46,7 +45,6 @@ function buildTableRows(campaignRows) {
         cost: row.cost,
         impressions: row.impressions,
         clicks: row.clicks,
-        reach: row.reach,
         conversions: row.conversions,
         ctr: row.ctr,
         cpc: row.cpc,
@@ -119,8 +117,7 @@ function renderTableBody(rows) {
 }
 
 // 加總所有廣告活動算出「總計」列
-// Reach（觸及）不能直接加總：不同廣告活動觸及的受眾會重疊，加起來會比實際觸及人數多很多，所以這欄留空
-// CTR/CPC/CPM/CPA/CVR 也不能把每個廣告活動的數字直接加總或平均，要用加總後的原始數字重新計算才正確
+// CTR/CPC/CPM/CPA/CVR 不能把每個廣告活動的數字直接加總或平均，要用加總後的原始數字重新計算才正確
 function calcTotalsRow(rows) {
     const cost = rows.reduce((sum, row) => sum + row.cost, 0);
     const impressions = rows.reduce((sum, row) => sum + row.impressions, 0);
@@ -132,7 +129,6 @@ function calcTotalsRow(rows) {
         cost,
         impressions,
         clicks,
-        reach: null,
         conversions,
         ctr: impressions > 0 ? (clicks / impressions) * 100 : null,
         cpc: clicks > 0 ? cost / clicks : null,

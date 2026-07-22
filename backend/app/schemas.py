@@ -11,7 +11,6 @@ class CampaignPerformance(BaseModel):
     cost: float
     impressions: int
     clicks: int
-    reach: int
     conversions: int
     ctr: float | None
     cpc: float | None
