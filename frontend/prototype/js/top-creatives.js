@@ -6,6 +6,11 @@
 const TOP_CREATIVE_TARGET_STORAGE_KEY = "metaAdsDashboard.topCreativeCpaTarget";
 const TOP_CREATIVE_DEFAULT_TARGET = 150;
 
+// 每頁最多顯示幾支素材；超過的部分要靠分頁按鈕切換
+const TOP_CREATIVE_PAGE_SIZE = 5;
+
+let topCreativeCurrentPage = 1;
+
 // 素材的投遞狀態設定：label 是畫面上顯示的中文字、className 決定badge的顏色
 // 這裡的key要對應Meta廣告的真實投遞狀態（active/inactive/not_delivering），不是mock data原本用的active/paused/deleted
 const CREATIVE_STATUS_CONFIG = {
@@ -44,7 +49,10 @@ function renderTopCreativeList(rows) {
         return;
     }
 
-    rows.forEach((row) => {
+    const startIndex = (topCreativeCurrentPage - 1) * TOP_CREATIVE_PAGE_SIZE;
+    const pageRows = rows.slice(startIndex, startIndex + TOP_CREATIVE_PAGE_SIZE);
+
+    pageRows.forEach((row) => {
         const statusConfig = CREATIVE_STATUS_CONFIG[row.status] || UNKNOWN_STATUS_CONFIG;
 
         const rowEl = document.createElement("div");
@@ -63,6 +71,42 @@ function renderTopCreativeList(rows) {
     });
 }
 
+function renderTopCreativePagination(totalPages) {
+    const container = document.getElementById("top-creative-pagination");
+    container.innerHTML = "";
+    container.className = "flex items-center justify-end gap-2 mt-4";
+
+    if (totalPages <= 1) return;
+
+    const buttonClass = "text-xs px-2 py-1 border border-slate-300 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50";
+
+    const prevButton = document.createElement("button");
+    prevButton.textContent = "上一頁";
+    prevButton.className = buttonClass;
+    prevButton.disabled = topCreativeCurrentPage === 1;
+    prevButton.addEventListener("click", () => {
+        topCreativeCurrentPage -= 1;
+        renderTopCreatives();
+    });
+
+    const pageText = document.createElement("div");
+    pageText.className = "text-xs text-slate-500";
+    pageText.textContent = `第 ${topCreativeCurrentPage} / ${totalPages} 頁`;
+
+    const nextButton = document.createElement("button");
+    nextButton.textContent = "下一頁";
+    nextButton.className = buttonClass;
+    nextButton.disabled = topCreativeCurrentPage === totalPages;
+    nextButton.addEventListener("click", () => {
+        topCreativeCurrentPage += 1;
+        renderTopCreatives();
+    });
+
+    container.appendChild(prevButton);
+    container.appendChild(pageText);
+    container.appendChild(nextButton);
+}
+
 // 固定看「過去30天」，跟KPI卡片選的時間區間無關
 async function renderTopCreatives() {
     const targetCpa = Number(document.getElementById("topCreativeTargetInput").value);
@@ -75,7 +119,15 @@ async function renderTopCreatives() {
     try {
         const apiRows = await fetchTopCreatives(startDate, endDate, targetCpa);
         const rows = buildTopCreativeRows(apiRows);
+
+        const totalPages = Math.max(Math.ceil(rows.length / TOP_CREATIVE_PAGE_SIZE), 1);
+        // 如果篩選條件改變導致總頁數變少，目前頁碼可能超出範圍，要拉回最後一頁
+        if (topCreativeCurrentPage > totalPages) {
+            topCreativeCurrentPage = totalPages;
+        }
+
         renderTopCreativeList(rows);
+        renderTopCreativePagination(totalPages);
     } catch (error) {
         console.error("讀取強勢素材資料失敗：", error);
     }
@@ -86,4 +138,7 @@ document.getElementById("topCreativeTargetInput").value =
     savedTarget !== null ? savedTarget : TOP_CREATIVE_DEFAULT_TARGET;
 
 renderTopCreatives();
-document.getElementById("topCreativeTargetInput").addEventListener("input", renderTopCreatives);
+document.getElementById("topCreativeTargetInput").addEventListener("input", () => {
+    topCreativeCurrentPage = 1;
+    renderTopCreatives();
+});
