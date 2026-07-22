@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from .. import metrics
 from ..database import get_db
+from ..dependencies import validate_date_range
 from ..models import Ad, AdSet, Campaign, DailyPerformance
 from ..schemas import AlertItem, AlertsResponse
 
@@ -23,8 +24,7 @@ def _is_exceeded(metric: str, value: float | None, threshold: float) -> bool:
 
 @router.get("", response_model=AlertsResponse)
 def get_alerts(
-    start_date: date,
-    end_date: date,
+    date_range: tuple[date, date] = Depends(validate_date_range),
     metric: str = Query(pattern="^(cpa|roas)$"),
     threshold: float = Query(...),
     db: Session = Depends(get_db),
@@ -35,6 +35,7 @@ def get_alerts(
     目前沒有營收資料來源，roas 永遠算不出來（None），所以 metric=roas 目前不會有任何警示，
     等之後有營收資料了才會生效——這是故意的，不是bug。
     """
+    start_date, end_date = date_range
     adset_rows = (
         db.query(
             AdSet.name,

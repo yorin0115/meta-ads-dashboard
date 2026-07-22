@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from .. import metrics
 from ..database import get_db
+from ..dependencies import validate_date_range
 from ..models import Ad, AdSet, Campaign, DailyPerformance
 from ..schemas import TopCreativeItem
 
@@ -13,9 +14,8 @@ router = APIRouter(prefix="/api/top-creatives", tags=["top-creatives"])
 
 @router.get("", response_model=list[TopCreativeItem])
 def get_top_creatives(
-    start_date: date,
-    end_date: date,
     target_cpa: float,
+    date_range: tuple[date, date] = Depends(validate_date_range),
     db: Session = Depends(get_db),
 ):
     """找出這段期間平均CPA有達成目標的廣告（素材），CPA低（表現好）的排最前面
@@ -25,6 +25,7 @@ def get_top_creatives(
     ad.csv本身沒有「狀態」欄位（見models.py的說明），這裡用「這段期間最後一天的投遞狀態」
     當作這個廣告目前的狀態，比較貼近「現在還有沒有在投遞」這個問題。
     """
+    start_date, end_date = date_range
     rows = (
         db.query(
             Ad.ad_id,

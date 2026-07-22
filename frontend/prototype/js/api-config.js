@@ -34,8 +34,12 @@ function getDateRangeForPreset(rangeKey) {
     }
 
     // month：當月1號到昨天
+    // 注意：每個月1號當天，「昨天」是上個月的最後一天，會比「當月1號」還早，
+    // 這樣結束日期就會變得比開始日期早，區間反過來、打API會查不到資料。
+    // 這種情況下，代表這個月還沒有任何一整天的資料可以看，結束日期就用當月1號頂著。
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    return { startDate: formatDateAsISO(firstDayOfMonth), endDate: formatDateAsISO(yesterday) };
+    const monthEndDate = yesterday < firstDayOfMonth ? firstDayOfMonth : yesterday;
+    return { startDate: formatDateAsISO(firstDayOfMonth), endDate: formatDateAsISO(monthEndDate) };
 }
 
 // 依行銷活動列出指定日期區間的成效（花費、曝光、點擊...等，CPA/CPC/CPM/CTR/CVR/ROAS後端已經算好）

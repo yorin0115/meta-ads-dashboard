@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from .. import metrics
 from ..database import get_db
+from ..dependencies import validate_date_range
 from ..models import DailyPerformance
 from ..schemas import PerformanceSummary, PeriodMetrics, TrendPoint
 
@@ -88,13 +89,13 @@ def _daily_trend(db: Session, start_date: date, end_date: date) -> list[TrendPoi
 
 @router.get("/summary", response_model=PerformanceSummary)
 def get_performance_summary(
-    start_date: date,
-    end_date: date,
+    date_range: tuple[date, date] = Depends(validate_date_range),
     db: Session = Depends(get_db),
 ):
     """整個帳號的KPI摘要：這段期間的加總指標、上一個等長期間的加總指標（用來算漲跌%）、
     還有這段期間每天的趨勢
     """
+    start_date, end_date = date_range
     previous_start, previous_end = _get_previous_period(start_date, end_date)
 
     return PerformanceSummary(

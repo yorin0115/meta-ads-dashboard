@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from .. import metrics
 from ..database import get_db
+from ..dependencies import validate_date_range
 from ..models import Ad, AdSet, Campaign, DailyPerformance
 from ..schemas import CampaignPerformance
 
@@ -14,8 +15,7 @@ router = APIRouter(prefix="/api/campaigns", tags=["campaigns"])
 
 @router.get("/performance", response_model=list[CampaignPerformance])
 def get_campaigns_performance(
-    start_date: date,
-    end_date: date,
+    date_range: tuple[date, date] = Depends(validate_date_range),
     db: Session = Depends(get_db),
 ):
     """依行銷活動加總指定日期區間的花費/曝光/點擊/轉換，並算出衍生指標
@@ -24,6 +24,7 @@ def get_campaigns_performance(
     是為了讓某個時間區間內完全沒有成效資料的campaign也會出現在結果裡（顯示0），
     而不是直接消失不見——這樣跟現在前端的行為一致。
     """
+    start_date, end_date = date_range
     campaigns = db.query(Campaign).order_by(Campaign.campaign_id).all()
 
     agg_rows = (
