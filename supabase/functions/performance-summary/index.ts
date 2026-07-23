@@ -125,9 +125,24 @@ async function getDailyTrend(
 
   if (error) throw error;
 
-  const rowByDate: Record<string, any> = {};
+  // 按日期聚合數據（sum all rows for the same date）
+  const aggregatedByDate: Record<string, any> = {};
   (data || []).forEach((row: any) => {
-    rowByDate[row.date] = row;
+    const date = row.date;
+    if (!aggregatedByDate[date]) {
+      aggregatedByDate[date] = {
+        cost: 0,
+        revenue: 0,
+        impressions: 0,
+        clicks: 0,
+        conversions: 0,
+      };
+    }
+    aggregatedByDate[date].cost += parseFloat(row.cost || 0);
+    aggregatedByDate[date].revenue += parseFloat(row.revenue || 0);
+    aggregatedByDate[date].impressions += row.impressions || 0;
+    aggregatedByDate[date].clicks += row.clicks || 0;
+    aggregatedByDate[date].conversions += row.conversions || 0;
   });
 
   const points = [];
@@ -136,12 +151,12 @@ async function getDailyTrend(
 
   while (current <= end) {
     const dateStr = formatDateAsISO(current);
-    const row = rowByDate[dateStr];
-    const cost = row ? parseFloat(row.cost || 0) : 0;
-    const revenue = row ? parseFloat(row.revenue || 0) : 0;
-    const impressions = row ? row.impressions || 0 : 0;
-    const clicks = row ? row.clicks || 0 : 0;
-    const conversions = row ? row.conversions || 0 : 0;
+    const aggregated = aggregatedByDate[dateStr];
+    const cost = aggregated ? aggregated.cost : 0;
+    const revenue = aggregated ? aggregated.revenue : 0;
+    const impressions = aggregated ? aggregated.impressions : 0;
+    const clicks = aggregated ? aggregated.clicks : 0;
+    const conversions = aggregated ? aggregated.conversions : 0;
 
     points.push({
       date: dateStr,
