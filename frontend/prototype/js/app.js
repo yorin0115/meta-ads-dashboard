@@ -123,11 +123,13 @@ function renderChart() {
     // 沒有指標用到的軸就不畫出來，不然會出現一條 0~1 的空白刻度
     const usedAxes = new Set(checkedMetrics.map((key) => KPI_CONFIG[key].axis));
     const scales = {};
+    // 左右兩軸的刻度數量要一樣，格線才會左右對齊（不然兩邊各自算刻度，數字會對不齊）
     if (usedAxes.has("yCurrency")) {
         scales.yCurrency = {
             type: "linear",
             position: "left",
-            title: { display: true, text: "CPA（NT$）" }
+            title: { display: true, text: "CPA（NT$）" },
+            ticks: { count: 5 }
         };
     }
     if (usedAxes.has("yRate")) {
@@ -135,7 +137,8 @@ function renderChart() {
             type: "linear",
             position: "right",
             title: { display: true, text: "ROAS / CVR / CTR" },
-            grid: { drawOnChartArea: false }
+            grid: { drawOnChartArea: false },
+            ticks: { count: 5 }
         };
     }
 
