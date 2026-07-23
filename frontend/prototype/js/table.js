@@ -117,12 +117,17 @@ function renderTableBody(rows) {
 }
 
 // 加總所有廣告活動算出「總計」列
-// CTR/CPC/CPM/CPA/CVR 不能把每個廣告活動的數字直接加總或平均，要用加總後的原始數字重新計算才正確
+// CTR/CPC/CPM/CPA/CVR/ROAS 不能把每個廣告活動的數字直接加總或平均，要用加總後的原始數字重新計算才正確
 function calcTotalsRow(rows) {
     const cost = rows.reduce((sum, row) => sum + row.cost, 0);
     const impressions = rows.reduce((sum, row) => sum + row.impressions, 0);
     const clicks = rows.reduce((sum, row) => sum + row.clicks, 0);
     const conversions = rows.reduce((sum, row) => sum + row.conversions, 0);
+
+    // 後端沒有直接回傳「營收」欄位，但 roas = 營收 ÷ 花費，
+    // 所以反推回去（roas × cost）就能還原每個廣告活動的營收，再加總算出正確的總計ROAS
+    const hasRevenue = rows.some((row) => row.roas !== null);
+    const revenue = rows.reduce((sum, row) => sum + (row.roas !== null ? row.roas * row.cost : 0), 0);
 
     return {
         name: "總計",
@@ -133,7 +138,7 @@ function calcTotalsRow(rows) {
         ctr: impressions > 0 ? (clicks / impressions) * 100 : null,
         cpc: clicks > 0 ? cost / clicks : null,
         cpm: impressions > 0 ? (cost / impressions) * 1000 : null,
-        roas: null,
+        roas: hasRevenue && cost > 0 ? revenue / cost : null,
         cpa: conversions > 0 ? cost / conversions : null,
         cvr: clicks > 0 ? (conversions / clicks) * 100 : null
     };
