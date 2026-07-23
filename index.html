@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta 廣告成效總覽</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-white text-[#2B2B2B]">
+
+    <header class="bg-white border-b border-[#E5E5E5] px-6 py-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold">Meta Ads Manager 成效總覽</h1>
+        <div id="accountNameText" class="text-sm text-slate-500"></div>
+    </header>
+
+    <main class="p-6 space-y-6">
+
+        <!-- 當月花費進度總覽 -->
+        <div class="kpi-card">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-3">
+                        <label for="monthlyBudgetInput" class="kpi-label">當月預算</label>
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">NT$</span>
+                            <input type="number" id="monthlyBudgetInput" class="pl-9 pr-2 py-1 border border-slate-300 rounded-lg text-sm w-32">
+                        </div>
+                    </div>
+                    <div id="budgetProgressText" class="text-sm text-slate-600 mb-1"></div>
+                    <div class="w-full bg-[#F2F2F2] rounded-full h-2">
+                        <div id="budgetProgressBar" class="h-2 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 sm:min-w-[220px]">
+                    <div id="budgetStatusLight" class="w-4 h-4 rounded-full flex-shrink-0"></div>
+                    <div>
+                        <div id="budgetStatusText" class="text-sm font-medium"></div>
+                        <div id="idealDailySpendText" class="text-xs text-slate-500 mt-0.5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制列：時間區間 + 指標勾選 -->
+        <div class="bg-white border border-[#E5E5E5] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex items-center gap-2">
+                <label for="rangeSelect" class="text-sm font-medium text-slate-600">時間區間：</label>
+                <select id="rangeSelect" class="border border-slate-300 rounded-lg text-sm px-3 py-1.5">
+                    <option value="1d">過去1天</option>
+                    <option value="7d">過去7天</option>
+                    <option value="30d" selected>過去30天</option>
+                    <option value="month">當月</option>
+                </select>
+            </div>
+
+            <div id="kpi-checkboxes" class="flex flex-wrap items-center gap-4">
+                <!-- 指標勾選框由 app.js 動態產生 -->
+            </div>
+        </div>
+
+        <!-- KPI 卡片 + 廣告活動花費佔比：固定兩欄比例（3:1），左邊放KPI卡片，右邊放花費佔比甜甜圈圖 -->
+        <div class="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-4">
+            <div id="kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- KPI 卡片會由 app.js 動態產生在這裡 -->
+            </div>
+
+            <!-- 廣告活動花費佔比：依目前選取的時間區間，畫出各廣告活動花費佔比（甜甜圈圖），只顯示花費前5名，其餘歸類為「其他」 -->
+            <div class="kpi-card">
+                <div class="kpi-label mb-3">廣告活動花費佔比</div>
+                <div class="w-full max-w-[180px] mx-auto">
+                    <canvas id="spendShareChart"></canvas>
+                </div>
+                <div id="spend-share-legend" class="mt-4 space-y-2">
+                    <!-- 圖例列表由 campaign-spend-share.js 動態產生 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 成效趨勢圖 -->
+        <div class="kpi-card">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div class="kpi-label">成效趨勢</div>
+                <div id="trend-checkboxes" class="flex flex-wrap items-center gap-4">
+                    <!-- 指標勾選框由 app.js 動態產生 -->
+                </div>
+            </div>
+            <canvas id="trendChart" height="90"></canvas>
+        </div>
+
+        <!-- 成效表現表格：依廣告活動列出各項指標，點欄位標題可排序 -->
+        <div class="kpi-card">
+            <div class="kpi-label mb-3">成效指標</div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr id="performance-table-header"></tr>
+                    </thead>
+                    <tbody id="performance-table-body"></tbody>
+                    <tfoot id="performance-table-footer"></tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- 成效警示：活動群組與素材統一看過去7天，門檻可自訂（CPA 高於 / ROAS 低於 二擇一） -->
+        <div class="kpi-card">
+            <div class="kpi-label mb-3 flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>成效警示 (過去7天)</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <select id="alertMetricSelect" class="border border-slate-300 rounded-lg text-sm px-3 py-1.5">
+                    <option value="cpa">CPA 高於</option>
+                    <option value="roas">ROAS 低於</option>
+                </select>
+                <input type="number" id="alertThresholdInput" step="0.1" class="border border-slate-300 rounded-lg text-sm px-3 py-1.5 w-28">
+                <div id="alertThresholdUnitText" class="text-sm text-slate-500"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-sm font-medium text-slate-600">活動群組</div>
+                        <div id="adsetAlertSummaryText" class="text-sm font-medium text-slate-600"></div>
+                    </div>
+                    <div id="adset-alert-list"></div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-sm font-medium text-slate-600">素材</div>
+                        <div id="creativeAlertSummaryText" class="text-sm font-medium text-slate-600"></div>
+                    </div>
+                    <div id="creative-alert-list"></div>
+                </div>
+            </div>
+
+            <div id="alert-pagination"></div>
+        </div>
+
+        <!-- 強勢素材清單：列出過去30天平均CPA有達成KPI目標的素材，並標示所屬Campaign/Adset與投遞狀態 -->
+        <div class="kpi-card">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="kpi-label flex items-center gap-1.5">
+                    <span>🏆</span>
+                    <span>強勢素材清單 (過去30天)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="topCreativeTargetInput" class="text-sm text-slate-600">目標 CPA 低於</label>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">NT$</span>
+                        <input type="number" id="topCreativeTargetInput" step="1" class="pl-9 pr-2 py-1.5 border border-slate-300 rounded-lg text-sm w-28">
+                    </div>
+                </div>
+            </div>
+            <div id="top-creative-list"></div>
+            <div id="top-creative-pagination"></div>
+        </div>
+
+    </main>
+
+    <script src="js/api-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/table.js"></script>
+    <script src="js/campaign-spend-share.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/top-creatives.js"></script>
+</body>
+</html>
