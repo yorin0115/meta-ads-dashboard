@@ -30,6 +30,7 @@ def _aggregate_totals(db: Session, start_date: date, end_date: date) -> PeriodMe
             func.sum(DailyPerformance.impressions).label("impressions"),
             func.sum(DailyPerformance.clicks).label("clicks"),
             func.sum(DailyPerformance.conversions).label("conversions"),
+            func.count(func.distinct(DailyPerformance.date)).label("days_with_data"),
         )
         .filter(DailyPerformance.date >= start_date, DailyPerformance.date <= end_date)
         .one()
@@ -40,12 +41,16 @@ def _aggregate_totals(db: Session, start_date: date, end_date: date) -> PeriodMe
     clicks = row.clicks or 0
     conversions = row.conversions or 0
 
+    period_length_days = (end_date - start_date).days + 1
+    is_complete = (row.days_with_data or 0) >= period_length_days
+
     return PeriodMetrics(
         cost=cost,
         cpa=metrics.calc_cpa(cost, conversions),
         roas=metrics.calc_roas(revenue, cost),
         cvr=metrics.calc_cvr(conversions, clicks),
         ctr=metrics.calc_ctr(clicks, impressions),
+        is_complete=is_complete,
     )
 
 

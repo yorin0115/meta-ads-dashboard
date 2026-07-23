@@ -48,6 +48,15 @@ function formatChange(current, previous, better) {
     return `<span class="${colorClass} text-sm font-medium">${sign}${changePercent.toFixed(1)}%</span>`;
 }
 
+// current或previous只要有一邊資料天數不足選擇的時間長度（例如帳號才剛開始投放，還沒累積滿30天），
+// 漲跌%會被資料缺天數扭曲、失去意義，這種情況顯示警示文字取代漲跌%
+function formatChangeOrWarning(current, previous, better, isPeriodComplete) {
+    if (!isPeriodComplete) {
+        return `<span class="text-amber-500 text-sm font-medium" title="所選期間或上一期間的資料天數不足，漲跌幅暫不提供">⚠ 資料時間區間不足</span>`;
+    }
+    return formatChange(current, previous, better);
+}
+
 function getCheckedMetrics(containerId) {
     const checkboxes = document.querySelectorAll(`#${containerId} input[type=checkbox]`);
     return Array.from(checkboxes)
@@ -80,6 +89,8 @@ function renderCards() {
     const container = document.getElementById("kpi-cards");
     container.innerHTML = "";
 
+    const isPeriodComplete = currentSummary.current.is_complete && currentSummary.previous.is_complete;
+
     checkedMetrics.forEach((key) => {
         const config = KPI_CONFIG[key];
         const current = currentSummary.current[key];
@@ -90,7 +101,7 @@ function renderCards() {
         card.innerHTML = `
             <div class="kpi-label">${config.label}</div>
             <div class="kpi-value">${formatValue(current, config.format)}</div>
-            <div class="mt-1">${formatChange(current, previous, config.better)} 較上一期間</div>
+            <div class="mt-1">${formatChangeOrWarning(current, previous, config.better, isPeriodComplete)} 較上一期間</div>
         `;
         container.appendChild(card);
     });

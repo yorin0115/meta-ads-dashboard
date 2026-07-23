@@ -28,6 +28,9 @@ class PeriodMetrics(BaseModel):
     roas: float | None
     cvr: float | None
     ctr: float | None
+    is_complete: bool
+    """這段期間每一天是不是都有資料。False代表資料庫裡這段期間有缺天數
+    （常見於帳號剛開始投放、還沒累積滿選擇的時間長度），漲跌%僅供參考"""
 
 
 class TrendPoint(BaseModel):
