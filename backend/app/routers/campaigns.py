@@ -31,6 +31,7 @@ def get_campaigns_performance(
         db.query(
             Campaign.campaign_id,
             func.sum(DailyPerformance.cost).label("cost"),
+            func.sum(DailyPerformance.revenue).label("revenue"),
             func.sum(DailyPerformance.impressions).label("impressions"),
             func.sum(DailyPerformance.clicks).label("clicks"),
             func.sum(DailyPerformance.conversions).label("conversions"),
@@ -48,6 +49,7 @@ def get_campaigns_performance(
     for campaign in campaigns:
         agg = agg_by_campaign_id.get(campaign.campaign_id)
         cost = float(agg.cost) if agg else 0.0
+        revenue = float(agg.revenue) if agg and agg.revenue is not None else None
         impressions = agg.impressions if agg else 0
         clicks = agg.clicks if agg else 0
         conversions = agg.conversions if agg else 0
@@ -65,7 +67,7 @@ def get_campaigns_performance(
                 cpm=metrics.calc_cpm(cost, impressions),
                 cpa=metrics.calc_cpa(cost, conversions),
                 cvr=metrics.calc_cvr(conversions, clicks),
-                roas=None,  # 目前沒有營收資料來源，先固定回傳 None
+                roas=metrics.calc_roas(revenue, cost),
             )
         )
     return results

@@ -26,6 +26,7 @@ def _aggregate_totals(db: Session, start_date: date, end_date: date) -> PeriodMe
     row = (
         db.query(
             func.sum(DailyPerformance.cost).label("cost"),
+            func.sum(DailyPerformance.revenue).label("revenue"),
             func.sum(DailyPerformance.impressions).label("impressions"),
             func.sum(DailyPerformance.clicks).label("clicks"),
             func.sum(DailyPerformance.conversions).label("conversions"),
@@ -34,6 +35,7 @@ def _aggregate_totals(db: Session, start_date: date, end_date: date) -> PeriodMe
         .one()
     )
     cost = float(row.cost or 0)
+    revenue = float(row.revenue) if row.revenue is not None else None
     impressions = row.impressions or 0
     clicks = row.clicks or 0
     conversions = row.conversions or 0
@@ -41,7 +43,7 @@ def _aggregate_totals(db: Session, start_date: date, end_date: date) -> PeriodMe
     return PeriodMetrics(
         cost=cost,
         cpa=metrics.calc_cpa(cost, conversions),
-        roas=None,  # 目前沒有營收資料來源
+        roas=metrics.calc_roas(revenue, cost),
         cvr=metrics.calc_cvr(conversions, clicks),
         ctr=metrics.calc_ctr(clicks, impressions),
     )
@@ -53,6 +55,7 @@ def _daily_trend(db: Session, start_date: date, end_date: date) -> list[TrendPoi
         db.query(
             DailyPerformance.date,
             func.sum(DailyPerformance.cost).label("cost"),
+            func.sum(DailyPerformance.revenue).label("revenue"),
             func.sum(DailyPerformance.impressions).label("impressions"),
             func.sum(DailyPerformance.clicks).label("clicks"),
             func.sum(DailyPerformance.conversions).label("conversions"),
@@ -68,6 +71,7 @@ def _daily_trend(db: Session, start_date: date, end_date: date) -> list[TrendPoi
     while current_date <= end_date:
         row = row_by_date.get(current_date)
         cost = float(row.cost) if row else 0.0
+        revenue = float(row.revenue) if row and row.revenue is not None else None
         impressions = row.impressions if row else 0
         clicks = row.clicks if row else 0
         conversions = row.conversions if row else 0
@@ -77,7 +81,7 @@ def _daily_trend(db: Session, start_date: date, end_date: date) -> list[TrendPoi
                 date=current_date,
                 cost=cost,
                 cpa=metrics.calc_cpa(cost, conversions),
-                roas=None,
+                roas=metrics.calc_roas(revenue, cost),
                 cvr=metrics.calc_cvr(conversions, clicks),
                 ctr=metrics.calc_ctr(clicks, impressions),
             )

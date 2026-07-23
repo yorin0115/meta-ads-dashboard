@@ -62,9 +62,6 @@ class DailyPerformance(Base):
 
     畫面上會看到的所有數字（KPI卡片、趨勢圖、花費佔比、成效表格...）都是從這張表
     「即時算出來」的，不會再像 mock data 一樣，每個功能各自準備一份寫死的加總數字。
-
-    目前故意不放「營收」欄位，因為 performance.csv 沒有這個資料來源；等之後決定好
-    營收要從哪裡取得，再另外新增欄位或新增一張表。
     """
 
     __tablename__ = "daily_performance"
@@ -75,6 +72,7 @@ class DailyPerformance(Base):
     ad_id: Mapped[str] = mapped_column(ForeignKey("ads.ad_id"))
     delivery_status: Mapped[str] = mapped_column(String(20))
     cost: Mapped[float] = mapped_column(Numeric(12, 2))
+    revenue: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
     conversions: Mapped[int] = mapped_column(Integer, default=0)
     reach: Mapped[int] = mapped_column(Integer, default=0)
     impressions: Mapped[int] = mapped_column(Integer, default=0)

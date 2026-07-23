@@ -47,6 +47,18 @@ def parse_float(value: str) -> float:
     return float(value) if value else 0.0
 
 
+def parse_optional_float(value: str | None) -> float | None:
+    """給「沒有資料就代表無法得知」的欄位用（例如營收）。
+
+    跟 parse_float 不一樣的地方：沒有值的時候回傳 None（無法得知），
+    不是 0（確定就是零）——這樣之後 calc_roas 才能正確分辨這兩種情況。
+    """
+    if value is None:
+        return None
+    value = value.strip()
+    return float(value) if value else None
+
+
 def import_campaigns(session) -> None:
     rows = read_csv_rows("campaign.csv")
     for row in rows:
@@ -130,6 +142,7 @@ def import_daily_performance(session, name_to_ad_id: dict) -> None:
                 ad_id=ad_id,
                 delivery_status=row["廣告投遞"],
                 cost=parse_float(row["Cost"]),
+                revenue=parse_optional_float(row.get("購買轉換價值")),
                 conversions=parse_int(row["conv"]),
                 reach=parse_int(row["觸及人數"]),
                 impressions=parse_int(row["Imp"]),

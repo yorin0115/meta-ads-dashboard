@@ -22,6 +22,13 @@ def _is_exceeded(metric: str, value: float | None, threshold: float) -> bool:
     return value < threshold  # roas
 
 
+def _calc_alert_metric(metric: str, row) -> float | None:
+    if metric == "cpa":
+        return metrics.calc_cpa(float(row.cost), row.conversions)
+    revenue = float(row.revenue) if row.revenue is not None else None
+    return metrics.calc_roas(revenue, float(row.cost))
+
+
 @router.get("", response_model=AlertsResponse)
 def get_alerts(
     date_range: tuple[date, date] = Depends(validate_date_range),
@@ -32,8 +39,6 @@ def get_alerts(
     """找出這段期間CPA超過門檻（或ROAS低於門檻）的廣告組合跟廣告
 
     對應前端 frontend/prototype/js/alerts.js。
-    目前沒有營收資料來源，roas 永遠算不出來（None），所以 metric=roas 目前不會有任何警示，
-    等之後有營收資料了才會生效——這是故意的，不是bug。
     """
     start_date, end_date = date_range
     adset_rows = (
@@ -41,6 +46,7 @@ def get_alerts(
             AdSet.name,
             Campaign.name.label("campaign_name"),
             func.sum(DailyPerformance.cost).label("cost"),
+            func.sum(DailyPerformance.revenue).label("revenue"),
             func.sum(DailyPerformance.conversions).label("conversions"),
         )
         .join(Campaign, Campaign.campaign_id == AdSet.campaign_id)
@@ -53,7 +59,7 @@ def get_alerts(
 
     adset_alerts = []
     for row in adset_rows:
-        value = metrics.calc_cpa(float(row.cost), row.conversions) if metric == "cpa" else None
+        value = _calc_alert_metric(metric, row)
         if _is_exceeded(metric, value, threshold):
             adset_alerts.append(
                 AlertItem(name=row.name, parent_name=row.campaign_name, metric=metric, value=value, threshold=threshold)
@@ -64,6 +70,7 @@ def get_alerts(
             Ad.name,
             AdSet.name.label("adset_name"),
             func.sum(DailyPerformance.cost).label("cost"),
+            func.sum(DailyPerformance.revenue).label("revenue"),
             func.sum(DailyPerformance.conversions).label("conversions"),
         )
         .join(AdSet, AdSet.adset_id == Ad.adset_id)
@@ -75,7 +82,7 @@ def get_alerts(
 
     creative_alerts = []
     for row in ad_rows:
-        value = metrics.calc_cpa(float(row.cost), row.conversions) if metric == "cpa" else None
+        value = _calc_alert_metric(metric, row)
         if _is_exceeded(metric, value, threshold):
             creative_alerts.append(
                 AlertItem(name=row.name, parent_name=row.adset_name, metric=metric, value=value, threshold=threshold)
