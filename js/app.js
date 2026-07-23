@@ -122,7 +122,8 @@ function renderChart() {
             backgroundColor: config.color,
             yAxisID: config.axis,
             tension: 0.3,
-            pointRadius: 2
+            pointRadius: 2,
+            spanGaps: true
         };
     });
 

@@ -122,7 +122,8 @@ function renderChart() {
             backgroundColor: config.color,
             yAxisID: config.axis,
             tension: 0.3,
-            pointRadius: 2
+            pointRadius: 2,
+            spanGaps: true
         };
     });
 
@@ -163,6 +164,9 @@ function renderChart() {
         options: {
             scales: scales,
             plugins: {
+                filler: {
+                    propagate: true
+                },
                 tooltip: {
                     callbacks: {
                         // 滑鼠移到點上時，用該指標對應的格式顯示數字（金額 / 百分比 / 倍數）
