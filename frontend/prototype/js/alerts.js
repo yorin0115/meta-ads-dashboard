@@ -25,7 +25,7 @@ const ALERTS_PAGE_SIZE = 5;
 let alertsCurrentPage = 1;
 
 async function fetchAlerts(startDate, endDate, metric, threshold) {
-    const url = `${API_BASE_URL}/api/alerts?start_date=${startDate}&end_date=${endDate}&metric=${metric}&threshold=${threshold}`;
+    const url = `${API_BASE_URL}/alerts?start_date=${startDate}&end_date=${endDate}&metric=${metric}&threshold=${threshold}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`API回應錯誤：${response.status}`);

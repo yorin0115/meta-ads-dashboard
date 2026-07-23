@@ -1,5 +1,5 @@
-// 後端API的位置。之後如果換到別的地方跑（例如部署到伺服器上），只要改這一個地方就好
-const API_BASE_URL = "http://127.0.0.1:8000";
+// Supabase Functions 後端 API
+const API_BASE_URL = "https://hgxpdrpalpqdxjduvcqx.supabase.co/functions/v1";
 
 // 把某個日期往前/往後推 N 天
 function addDays(dateObj, days) {
@@ -45,7 +45,7 @@ function getDateRangeForPreset(rangeKey) {
 // 依行銷活動列出指定日期區間的成效（花費、曝光、點擊...等，CPA/CPC/CPM/CTR/CVR/ROAS後端已經算好）
 // 花費佔比圖表（campaign-spend-share.js）跟成效表格（table.js）都會用到這個
 async function fetchCampaignPerformance(startDate, endDate) {
-    const url = `${API_BASE_URL}/api/campaigns/performance?start_date=${startDate}&end_date=${endDate}`;
+    const url = `${API_BASE_URL}/campaigns-performance?start_date=${startDate}&end_date=${endDate}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`API回應錯誤：${response.status}`);

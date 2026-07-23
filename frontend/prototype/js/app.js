@@ -183,7 +183,7 @@ function renderAll() {
 }
 
 async function fetchPerformanceSummary(startDate, endDate) {
-    const url = `${API_BASE_URL}/api/performance/summary?start_date=${startDate}&end_date=${endDate}`;
+    const url = `${API_BASE_URL}/performance-summary?start_date=${startDate}&end_date=${endDate}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`API回應錯誤：${response.status}`);

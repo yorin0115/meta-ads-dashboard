@@ -21,7 +21,7 @@ const CREATIVE_STATUS_CONFIG = {
 const UNKNOWN_STATUS_CONFIG = { label: "狀態不明", className: "bg-slate-200 text-slate-600" };
 
 async function fetchTopCreatives(startDate, endDate, targetCpa) {
-    const url = `${API_BASE_URL}/api/top-creatives?start_date=${startDate}&end_date=${endDate}&target_cpa=${targetCpa}`;
+    const url = `${API_BASE_URL}/top-creatives?start_date=${startDate}&end_date=${endDate}&target_cpa=${targetCpa}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`API回應錯誤：${response.status}`);
